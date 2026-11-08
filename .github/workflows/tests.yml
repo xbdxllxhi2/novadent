@@ -1,0 +1,43 @@
+name: Tests
+
+# Unit tests only (vitest, jsdom). Browser checks stay a manual Playwright drive.
+#
+# `main` is excluded from the push trigger on purpose: Publish image calls this same workflow
+# (workflow_call) before it builds, so main gets exactly one test run.
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+  workflow_call:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Unit tests
+        run: npm test -- --watch=false
+
+      - name: Production build
+        run: npm run build

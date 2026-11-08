@@ -1,0 +1,82 @@
+{{- $backend := include "novadent-frontend.backend" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "novadent-frontend.fullname" . }}
+  labels:
+    {{- include "novadent-frontend.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "novadent-frontend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "novadent-frontend.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "novadent-frontend.serviceAccountName" . }}
+      automountServiceAccountToken: false
+      containers:
+        - name: frontend
+          image: {{ include "novadent-frontend.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          # The image's entrypoint hook writes config.js from these at boot.
+          env:
+            - name: BACKEND_MODE
+              value: {{ $backend | quote }}
+            {{- if eq $backend "remote" }}
+            - name: API_BASE_URL
+              value: {{ required "config.apiBaseUrl is required in remote mode: the browser-facing API URL; unset, the SPA silently falls back to its compiled localhost default" .Values.config.apiBaseUrl | quote }}
+            - name: KEYCLOAK_ISSUER
+              value: {{ required "config.keycloakIssuer is required in remote mode (e.g. https://auth.example.com/realms/novadent)" .Values.config.keycloakIssuer | quote }}
+            {{- else }}
+            - name: API_BASE_URL
+              value: {{ .Values.config.apiBaseUrl | quote }}
+            - name: KEYCLOAK_ISSUER
+              value: {{ .Values.config.keycloakIssuer | quote }}
+            {{- end }}
+            - name: KEYCLOAK_CLIENT_ID
+              value: {{ .Values.config.keycloakClientId | quote }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

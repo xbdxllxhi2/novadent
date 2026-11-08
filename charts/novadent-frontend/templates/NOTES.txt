@@ -1,0 +1,11 @@
+{{ .Chart.Name }} {{ .Chart.Version }} deployed as {{ include "novadent-frontend.fullname" . }} in {{ include "novadent-frontend.backend" . }} mode.
+
+The SPA is configured at container start: config.js is regenerated from
+BACKEND_MODE / API_BASE_URL / KEYCLOAK_ISSUER / KEYCLOAK_CLIENT_ID and served no-cache.
+
+In mock mode every browser keeps its own demo data (localStorage + IndexedDB);
+"Reset demo data" in Settings regenerates it.
+
+In remote mode, register the SPA's public origin on the Keycloak client
+'{{ .Values.config.keycloakClientId }}' as BOTH a valid redirect URI and a web origin, and
+add the same origin to the API's CORS list.

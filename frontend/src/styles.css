@@ -6,7 +6,7 @@
 
 /*
  * tailwindcss-primeui exposes --color-primary and --color-surface-* names for Tailwind *utilities*
- * (bg-primary, text-surface-400, ...), all aliasing the live PrimeNG theme (novodent-preset.ts).
+ * (bg-primary, text-surface-400, ...), all aliasing the live PrimeNG theme (novadent-preset.ts).
  *
  * CAUTION: those names exist for the utility generator, NOT as custom properties at runtime. A raw
  * `var(--color-primary)` in a keyframe, a plain CSS rule, an SVG fill or a Tailwind arbitrary value

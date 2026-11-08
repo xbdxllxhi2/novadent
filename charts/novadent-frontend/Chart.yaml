@@ -1,0 +1,5 @@
+apiVersion: v2
+name: novadent-frontend
+description: Novadent SPA. nginx serving the Angular app, runtime-configured via config.js (mock or remote backend).
+type: application
+version: 0.1.0

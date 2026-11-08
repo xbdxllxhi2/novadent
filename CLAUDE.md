@@ -1,4 +1,4 @@
-# Novodent
+# Novadent
 
 Dental clinic management system for one multi-doctor clinic in Mauritania. Languages fr (default),
 ar (RTL), en. Currency MRU as integers, never decimals. Patient names are stored in both Latin and
@@ -7,13 +7,28 @@ Arabic script. Roles are named bundles of permissions; code checks permissions, 
 ## Layout
 
 - `frontend/` : Angular 21 app. Currently the only part that exists. Built against mock backends.
+  Also holds the `Dockerfile`, `nginx.conf`, `security-headers.inc` and `runtime-config.sh`.
+- `charts/novadent-frontend/` : Helm chart (image tag required, `config.backend` mock|remote).
+- `.github/workflows/` : `tests.yml` (format, vitest, build), `publish-image.yml` (GHCR image
+  `sha-<short>` on main), `publish-chart.yml` (OCI chart on `charts/**` changes; bump `version`).
 - `backend/` : Spring Boot 4 / Java 21 API (later). `desktop/` : Tauri 2 shell (later).
+- Deployment lives in the separate ArgoCD repo `D:\projects\ai assistant project\ai-deploy`
+  (`envs/dev/applications/stacks/novadent`, `envs/dev/values/novadent-frontend.yaml`,
+  namespace `dev-novadent`, host `novadent.ould-abdellahi.com`).
+
+## Runtime configuration
+
+`public/config.js` is rewritten at container start from `BACKEND_MODE`, `API_BASE_URL`,
+`KEYCLOAK_ISSUER`, `KEYCLOAK_CLIENT_ID`. `environment.ts` reads `window.__APP_CONFIG__.backend`
+and selects the mock adapters when it is `mock`; the dev server uses
+`environment.development.ts` instead. The seed is small on purpose: one doctor and three demo
+patients (Ali Mohamed, Mohamed Hamed, Souleymane Kane).
 
 ## Frontend stack
 
 - **Angular 21**, standalone components only, **zoneless**, signals everywhere (`signal`, `computed`,
   `effect`, `input()`, `output()`, `model()`), `inject()` only (no constructor parameters).
-- **PrimeNG 21** with the Aura preset extended in `frontend/src/app/core/theme/novodent-preset.ts`.
+- **PrimeNG 21** with the Aura preset extended in `frontend/src/app/core/theme/novadent-preset.ts`.
   Dark mode is the `.dark` class on `<html>` (`darkModeSelector: '.dark'`).
 - **Tailwind CSS v4**, CSS-first (`@theme` in `frontend/src/styles.css`, no `tailwind.config.js`),
   with `tailwindcss-primeui` so utilities alias PrimeNG tokens.
@@ -32,7 +47,7 @@ Arabic script. Roles are named bundles of permissions; code checks permissions, 
   methods return `Observable<T>`. `backends/mock/mock-<x>-backend.ts` and
   `backends/remote/remote-<x>-backend.ts` extend it. `app.config.ts` picks one per seam from
   `environment.backend`. Remote adapters are stubs until the backend phase.
-- **Mock state** lives in `localStorage` under `novodent.mock.<collection>` through
+- **Mock state** lives in `localStorage` under `novadent.mock.<collection>` through
   `backends/mock/mock-db.ts`, seeded by `seed.ts` (seeded PRNG, versioned). Mock backends enforce
   permissions and ownership like the real API will.
 - **Stores** (`*.store.ts`, `providedIn: 'root'`) wrap a seam, expose signals, subscribe with

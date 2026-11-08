@@ -8,6 +8,8 @@ import { Environment } from './environment.model';
 declare global {
   interface Window {
     __APP_CONFIG__?: Partial<{
+      /** 'mock' runs the published image on the in-browser adapters (demo deployments). */
+      backend: string;
       apiBaseUrl: string;
       keycloakIssuer: string;
       keycloakClientId: string;
@@ -21,11 +23,13 @@ const runtime = (typeof window !== 'undefined' && window.__APP_CONFIG__) || {};
 
 export const environment: Environment = {
   // This file IS the production environment. angular.json swaps it for
-  // environment.development.ts under the development configuration, which is where 'mock' lives.
-  backend: 'remote',
+  // environment.development.ts under the development configuration. A deployment can still ask
+  // for the mock adapters at container start (BACKEND_MODE=mock), which is how the demo runs
+  // before the API exists; anything else means the real backend.
+  backend: runtime.backend === 'mock' ? 'mock' : 'remote',
   apiBaseUrl: runtime.apiBaseUrl || 'http://localhost:8080',
   keycloak: {
-    issuer: runtime.keycloakIssuer || 'http://localhost:8081/realms/novodent',
-    clientId: runtime.keycloakClientId || 'novodent-frontend',
+    issuer: runtime.keycloakIssuer || 'http://localhost:8081/realms/novadent',
+    clientId: runtime.keycloakClientId || 'novadent-frontend',
   },
 };

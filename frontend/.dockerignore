@@ -1,0 +1,29 @@
+# Installed inside the image by `npm ci`; never copy the host tree in.
+node_modules/
+
+# Build outputs and caches: the image builds its own.
+dist/
+.angular/
+
+# NOTE: docker does NOT strip trailing comments from .dockerignore lines. Keep comments on
+# their own line.
+
+# Local-only environment files. The image builds the production configuration.
+**/*.env
+**/.env
+src/environments/environment.development.ts
+
+# Editor and OS metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Docker and CI files are not build inputs.
+Dockerfile
+.dockerignore
+
+# Claude Code session data
+.claude/
+**/CLAUDE.md

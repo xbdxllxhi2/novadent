@@ -1,0 +1,56 @@
+image:
+  repository: ghcr.io/xbdxllxhi2/novadent/frontend
+  # REQUIRED. No default, and 'latest' is refused. Set an immutable tag (sha-<short> from the
+  # publish-image workflow). Argo CD reconciles manifests, not digests: a :latest manifest
+  # reports Synced over stale pods.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+config:
+  # 'mock' serves the demo on the in-browser adapters (localStorage + IndexedDB per browser),
+  # no API or Keycloak needed. 'remote' requires apiBaseUrl and keycloakIssuer.
+  backend: mock
+  # What the BROWSER calls (public hostname of the API), not an in-cluster service name.
+  apiBaseUrl: ""
+  # Keycloak issuer URL, e.g. https://auth.example.com/realms/novadent
+  keycloakIssuer: ""
+  keycloakClientId: novadent-frontend
+
+# Deliberate: no readOnlyRootFilesystem and no runAsNonRoot. The image's entrypoint hook writes
+# config.js into the web root at boot, and the stock nginx master runs as root. This pod serves
+# static files and executes no user code.
+securityContext: {}
+
+service:
+  port: 80
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+networkPolicy:
+  # Only ingress from the ingress controller matters; the browser talks to the API directly,
+  # never through this pod. Raw lists, environment-owned.
+  enabled: false
+  ingress: []
+  egress: []

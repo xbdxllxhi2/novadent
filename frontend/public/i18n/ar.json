@@ -1,6 +1,6 @@
 {
   "common": {
-    "appVersion": "نوفودنت الإصدار {{version}}",
+    "appVersion": "نوفادنت الإصدار {{version}}",
     "currency": "أ.م",
     "save": "حفظ",
     "cancel": "إلغاء",

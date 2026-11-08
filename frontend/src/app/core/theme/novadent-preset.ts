@@ -2,7 +2,7 @@ import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 
 /**
- * Novodent theme: clinical teal on cool neutral surfaces.
+ * Novadent theme: clinical teal on cool neutral surfaces.
  *
  * The surface scale is INVERTED and shared by both schemes: 950 = page background, 900 = card,
  * 800 = hover/raised, 700/600 = hairline/strong border (alpha), 500..0 = muted text to strongest
@@ -15,7 +15,7 @@ import Aura from '@primeuix/themes/aura';
  * - Odontogram: existing = sky, planned = red (dashed), in-progress = orange, completed = primary,
  *   missing = surface-400 cross, caries = red fill.
  */
-export const NovodentPreset = definePreset(Aura, {
+export const NovadentPreset = definePreset(Aura, {
   primitive: {
     red: {
       50: '#FCEFEF',

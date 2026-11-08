@@ -1,6 +1,6 @@
 {
   "common": {
-    "appVersion": "Novodent v{{version}}",
+    "appVersion": "Novadent v{{version}}",
     "currency": "MRU",
     "save": "Enregistrer",
     "cancel": "Annuler",

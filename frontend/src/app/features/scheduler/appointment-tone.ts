@@ -1,7 +1,7 @@
 import type { AppointmentStatus } from '../../domain/scheduling/appointment.model';
 import type { StatusTone } from '../../shared/ui/status-tag';
 
-/** Status to colour tone, documented in novodent-preset.ts. */
+/** Status to colour tone, documented in novadent-preset.ts. */
 export function appointmentTone(status: AppointmentStatus): StatusTone {
   switch (status) {
     case 'scheduled':

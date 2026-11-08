@@ -12,7 +12,7 @@ export class ClinicSettingsStore {
   readonly saving = signal(false);
 
   readonly hours = computed<ClinicHours | null>(() => this.settings()?.hours ?? null);
-  readonly clinicName = computed(() => this.settings()?.name ?? 'Novodent');
+  readonly clinicName = computed(() => this.settings()?.name ?? 'Novadent');
 
   load(): void {
     this.backend

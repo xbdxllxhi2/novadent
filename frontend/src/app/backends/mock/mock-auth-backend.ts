@@ -7,7 +7,7 @@ import type { StaffUser } from '../../domain/staff/staff.model';
 import { MockDb } from './mock-db';
 import { respond } from './latency';
 
-const SESSION_KEY = 'novodent.session';
+const SESSION_KEY = 'novadent.session';
 
 /**
  * Demo sign-in: pick a staff user, get their role's permissions. Also the authority the other

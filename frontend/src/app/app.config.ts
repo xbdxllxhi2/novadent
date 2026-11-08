@@ -30,7 +30,7 @@ import { AuthBackend } from './core/auth/auth-backend';
 import { AuthStore } from './core/auth/auth.store';
 import { LocaleStore } from './core/i18n/locale.store';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
-import { NovodentPreset } from './core/theme/novodent-preset';
+import { NovadentPreset } from './core/theme/novadent-preset';
 import { BillingBackend } from './domain/billing/billing-backend';
 import { ClinicalBackend } from './domain/clinical/clinical-backend';
 import { PatientsBackend } from './domain/patients/patients-backend';
@@ -62,7 +62,7 @@ export const appConfig: ApplicationConfig = {
       loader: TranslocoHttpLoader,
     }),
     providePrimeNG({
-      theme: { preset: NovodentPreset, options: { darkModeSelector: '.dark' } },
+      theme: { preset: NovadentPreset, options: { darkModeSelector: '.dark' } },
       ripple: false,
     }),
     MessageService,

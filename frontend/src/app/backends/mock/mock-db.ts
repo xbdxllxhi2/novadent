@@ -57,7 +57,7 @@ export interface MockMeta {
   seededAt: string;
 }
 
-const PREFIX = 'novodent.mock.';
+const PREFIX = 'novadent.mock.';
 const META_KEY = `${PREFIX}meta`;
 const COUNTERS_KEY = `${PREFIX}counters`;
 
@@ -95,7 +95,7 @@ export class MockDb {
   reset(): void {
     // Attached files live in IndexedDB; drop them with the metadata (fire and forget).
     try {
-      indexedDB.deleteDatabase('novodent-mock-files');
+      indexedDB.deleteDatabase('novadent-mock-files');
     } catch {
       // IndexedDB unavailable: nothing to clear.
     }

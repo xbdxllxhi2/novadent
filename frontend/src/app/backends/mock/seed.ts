@@ -24,12 +24,12 @@ import type { SeedData } from './mock-db';
 import { SeededRandom } from './seed-random';
 
 /** Bump when the seed shape changes; MockDb reseeds on mismatch. */
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 5;
 
 /** Stable ids for fixed entities so mocks and tests can reference them. */
 export const SEED_IDS = {
-  doctors: { ahmed: 'doctor-ahmed', fatimetou: 'doctor-fatimetou', lemine: 'doctor-lemine' },
-  chairs: ['chair-1', 'chair-2', 'chair-3'],
+  doctors: { ahmed: 'doctor-ahmed' },
+  chairs: ['chair-1', 'chair-2'],
   roles: {
     owner: 'role-owner',
     dentist: 'role-dentist',
@@ -39,8 +39,6 @@ export const SEED_IDS = {
   },
   users: {
     owner: 'user-owner',
-    dentist: 'user-dentist',
-    dentist2: 'user-dentist-2',
     assistant: 'user-assistant',
     receptionist: 'user-receptionist',
     accountant: 'user-accountant',
@@ -158,22 +156,6 @@ const DOCTORS: Doctor[] = [
     specialty: 'Omnipratique',
     active: true,
   },
-  {
-    id: SEED_IDS.doctors.fatimetou,
-    nameLatin: 'Dr Fatimetou Mint Brahim',
-    nameArabic: 'د. فاطمتو منت إبراهيم',
-    color: '#7C6FCD',
-    specialty: 'Endodontie',
-    active: true,
-  },
-  {
-    id: SEED_IDS.doctors.lemine,
-    nameLatin: 'Dr Mohamed Lemine Ould Cheikh',
-    nameArabic: 'د. محمد لمين ولد الشيخ',
-    color: '#C97D27',
-    specialty: 'Chirurgie orale',
-    active: true,
-  },
 ];
 
 const CHAIRS: Chair[] = SEED_IDS.chairs.map((id, i) => ({
@@ -190,22 +172,6 @@ const USERS: StaffUser[] = [
     displayName: 'Ahmed Ould Sidi',
     roleId: SEED_IDS.roles.owner,
     doctorId: SEED_IDS.doctors.ahmed,
-    active: true,
-  },
-  {
-    id: SEED_IDS.users.dentist,
-    username: 'fatimetou',
-    displayName: 'Fatimetou Mint Brahim',
-    roleId: SEED_IDS.roles.dentist,
-    doctorId: SEED_IDS.doctors.fatimetou,
-    active: true,
-  },
-  {
-    id: SEED_IDS.users.dentist2,
-    username: 'lemine',
-    displayName: 'Mohamed Lemine Ould Cheikh',
-    roleId: SEED_IDS.roles.dentist,
-    doctorId: SEED_IDS.doctors.lemine,
     active: true,
   },
   {
@@ -236,7 +202,7 @@ const USERS: StaffUser[] = [
 
 const SETTINGS: ClinicSettings = {
   id: 'clinic',
-  name: 'Clinique Novodent',
+  name: 'Clinique Novadent',
   address: 'Tevragh Zeina, Nouakchott',
   phone: '+22245251010',
   hours: {
@@ -593,93 +559,55 @@ export const SEED_PROCEDURES: StoredProcedure[] = [
   P('CERT', 'Certificat medical', 'شهادة طبية', 'Medical certificate', 'other', 500, 5, 'mouth'),
 ];
 
-const MALE_FIRST: [string, string][] = [
-  ['Mohamed', 'محمد'],
-  ['Ahmed', 'أحمد'],
-  ['Sidi', 'سيدي'],
-  ['Moussa', 'موسى'],
-  ['Abdallahi', 'عبد الله'],
-  ['Cheikh', 'الشيخ'],
-  ['Mahmoud', 'محمود'],
-  ['Brahim', 'إبراهيم'],
-  ['Yahya', 'يحيى'],
-  ['Baba', 'بابا'],
-  ['Lemine', 'لمين'],
-  ['Hamady', 'حمادي'],
-  ['Ousmane', 'عثمان'],
-  ['Isselmou', 'إسلمو'],
-  ['Mokhtar', 'مختار'],
-  ['Abdel Kader', 'عبد القادر'],
-  ['Mamadou', 'مامادو'],
-  ['Saleck', 'السالك'],
-];
-const FEMALE_FIRST: [string, string][] = [
-  ['Fatimetou', 'فاطمتو'],
-  ['Aichetou', 'عيشتو'],
-  ['Mariem', 'مريم'],
-  ['Khadijetou', 'خديجتو'],
-  ['Zeinebou', 'زينبو'],
-  ['Salka', 'سالكة'],
-  ['Toutou', 'توتو'],
-  ['Aminetou', 'أمينتو'],
-  ['Lalla', 'لالة'],
-  ['Vatma', 'فاطمة'],
-  ['Coumba', 'كومبا'],
-  ['Khadija', 'خديجة'],
-  ['Mounina', 'منينة'],
-  ['Selma', 'سلمى'],
-  ['Aissata', 'عائشتا'],
-  ['Hawa', 'حواء'],
-];
-const PATRONYMS: [string, string][] = [
-  ['Ahmed', 'أحمد'],
-  ['Mohamed', 'محمد'],
-  ['Sidi', 'سيدي'],
-  ['Cheikh', 'الشيخ'],
-  ['Brahim', 'إبراهيم'],
-  ['Abdallahi', 'عبد الله'],
-  ['Moussa', 'موسى'],
-  ['Mahmoud', 'محمود'],
-  ['Yahya', 'يحيى'],
-  ['Lemine', 'لمين'],
-  ['Saleh', 'صالح'],
-  ['Hamoud', 'حمود'],
-  ['El Hacen', 'الحسن'],
-];
-const FAMILY_NAMES: [string, string][] = [
-  ['Sow', 'صو'],
-  ['Ba', 'با'],
-  ['Diallo', 'ديالو'],
-  ['Kane', 'كان'],
-  ['Camara', 'كمارا'],
-  ['Sy', 'سي'],
-  ['Dia', 'ديا'],
-  ['Thiam', 'تيام'],
-];
-const DISTRICTS = [
-  'Tevragh Zeina',
-  'Ksar',
-  'Sebkha',
-  'El Mina',
-  'Teyarett',
-  'Dar Naim',
-  'Arafat',
-  'Riyadh',
-  'Toujounine',
-];
-const ALERTS: {
-  kind: 'allergy' | 'condition' | 'medication';
-  label: string;
-  severity: 'info' | 'warn' | 'danger';
+/** The three demo patients, in both scripts. */
+const DEMO_PATIENTS: {
+  firstLatin: string;
+  lastLatin: string;
+  firstArabic: string;
+  lastArabic: string;
+  gender: 'M' | 'F';
+  birthDate: string;
+  phone: string;
+  address: string;
+  alerts: {
+    kind: 'allergy' | 'condition' | 'medication';
+    label: string;
+    severity: 'info' | 'warn' | 'danger';
+  }[];
 }[] = [
-  { kind: 'allergy', label: 'Penicilline', severity: 'danger' },
-  { kind: 'allergy', label: 'Latex', severity: 'warn' },
-  { kind: 'condition', label: 'Diabete type 2', severity: 'warn' },
-  { kind: 'condition', label: 'Hypertension', severity: 'warn' },
-  { kind: 'condition', label: 'Asthme', severity: 'info' },
-  { kind: 'medication', label: 'Anticoagulant', severity: 'danger' },
-  { kind: 'condition', label: 'Grossesse', severity: 'warn' },
-  { kind: 'condition', label: 'Cardiopathie', severity: 'danger' },
+  {
+    firstLatin: 'Ali',
+    lastLatin: 'Mohamed',
+    firstArabic: 'علي',
+    lastArabic: 'محمد',
+    gender: 'M',
+    birthDate: '1988-03-14',
+    phone: '+22246112233',
+    address: 'Tevragh Zeina',
+    alerts: [],
+  },
+  {
+    firstLatin: 'Mohamed',
+    lastLatin: 'Hamed',
+    firstArabic: 'محمد',
+    lastArabic: 'حامد',
+    gender: 'M',
+    birthDate: '1975-11-02',
+    phone: '+22236445566',
+    address: 'Ksar',
+    alerts: [{ kind: 'allergy', label: 'Penicilline', severity: 'danger' }],
+  },
+  {
+    firstLatin: 'Souleymane',
+    lastLatin: 'Kane',
+    firstArabic: 'سليمان',
+    lastArabic: 'كان',
+    gender: 'M',
+    birthDate: '1996-07-21',
+    phone: '+22222778899',
+    address: 'Sebkha',
+    alerts: [{ kind: 'condition', label: 'Diabete type 2', severity: 'warn' }],
+  },
 ];
 const REASONS = [
   'Controle',
@@ -712,47 +640,29 @@ export function buildSeedData(now: Date): SeedData {
 
   // Patients
   const patients: Patient[] = [];
-  const PATIENT_COUNT = 60;
-  for (let i = 0; i < PATIENT_COUNT; i++) {
-    const gender = rnd.chance(0.5) ? 'M' : 'F';
-    const [firstLatin, firstArabic] = rnd.pick(gender === 'M' ? MALE_FIRST : FEMALE_FIRST);
-    let lastLatin: string;
-    let lastArabic: string;
-    if (rnd.chance(0.75)) {
-      const [pLatin, pArabic] = rnd.pick(PATRONYMS);
-      lastLatin = `${gender === 'M' ? 'Ould' : 'Mint'} ${pLatin}`;
-      lastArabic = `${gender === 'M' ? 'ولد' : 'منت'} ${pArabic}`;
-    } else {
-      [lastLatin, lastArabic] = rnd.pick(FAMILY_NAMES);
-    }
-    const birthYear = now.getFullYear() - rnd.int(5, 75);
-    const created = daysAgo(rnd.int(10, 900));
-    const eligibleAlerts = ALERTS.filter((a) => gender === 'F' || a.label !== 'Grossesse');
-    const alerts = rnd.chance(0.3) ? [{ id: rnd.id(), ...rnd.pick(eligibleAlerts) }] : [];
-    if (alerts.length && rnd.chance(0.3)) {
-      const rest = eligibleAlerts.filter((a) => a.label !== alerts[0].label);
-      alerts.push({ id: rnd.id(), ...rnd.pick(rest) });
-    }
+  const PATIENT_COUNT = DEMO_PATIENTS.length;
+  DEMO_PATIENTS.forEach((p, i) => {
+    const created = daysAgo(400 - i * 120);
     patients.push({
       id: rnd.id(),
       fileNumber: `P-${String(i + 1).padStart(6, '0')}`,
-      firstNameLatin: firstLatin,
-      lastNameLatin: lastLatin,
-      firstNameArabic: firstArabic,
-      lastNameArabic: lastArabic,
-      gender,
-      birthDate: `${birthYear}-${String(rnd.int(1, 12)).padStart(2, '0')}-${String(rnd.int(1, 28)).padStart(2, '0')}`,
-      phone: `+222${rnd.pick(['2', '3', '4'])}${rnd.int(1000000, 9999999)}`,
+      firstNameLatin: p.firstLatin,
+      lastNameLatin: p.lastLatin,
+      firstNameArabic: p.firstArabic,
+      lastNameArabic: p.lastArabic,
+      gender: p.gender,
+      birthDate: p.birthDate,
+      phone: p.phone,
       phone2: null,
-      address: rnd.pick(DISTRICTS),
-      primaryDoctorId: rnd.chance(0.8) ? rnd.pick(DOCTORS).id : null,
-      alerts,
+      address: p.address,
+      primaryDoctorId: SEED_IDS.doctors.ahmed,
+      alerts: p.alerts.map((a) => ({ id: rnd.id(), ...a })),
       notes: '',
-      archived: i === PATIENT_COUNT - 1,
+      archived: false,
       createdAt: iso(created),
       updatedAt: iso(created),
     });
-  }
+  });
 
   // Appointments: day -30 to +14, each doctor on their own chair, 15-minute grid inside opening hours.
   const appointments: Appointment[] = [];
@@ -763,12 +673,12 @@ export function buildSeedData(now: Date): SeedData {
     const ranges = hoursFor(SETTINGS.hours, day);
     if (ranges.length === 0) continue;
     DOCTORS.forEach((doctor, di) => {
-      if (rnd.chance(0.08)) return; // doctor absent that day
+      if (rnd.chance(0.3)) return; // no visits that day
       for (const range of ranges) {
         let cursor = parseHm(range.start);
         const end = parseHm(range.end);
         while (cursor + 30 <= end) {
-          if (rnd.chance(0.3)) {
+          if (rnd.chance(0.7)) {
             cursor += 15 * rnd.int(1, 3);
             continue;
           }
@@ -807,7 +717,36 @@ export function buildSeedData(now: Date): SeedData {
       }
     });
   }
-  // A blocked slot: staff meeting next Tuesday 13:00-14:00 for everyone, and a half-day off for one doctor.
+  if (
+    hoursFor(SETTINGS.hours, today).length > 0 &&
+    !appointments.some((a) => a.start.slice(0, 10) === iso(today).slice(0, 10))
+  ) {
+    const first = hoursFor(SETTINGS.hours, today)[0];
+    patients.forEach((patient, i) => {
+      const start = new Date(today);
+      start.setHours(
+        Math.floor(parseHm(first.start) / 60),
+        (parseHm(first.start) % 60) + i * 45,
+        0,
+        0,
+      );
+      appointments.push({
+        id: rnd.id(),
+        patientId: patient.id,
+        doctorId: DOCTORS[0].id,
+        chairId: CHAIRS[0].id,
+        start: iso(start),
+        end: iso(new Date(start.getTime() + 30 * 60_000)),
+        status: i === 0 ? 'arrived' : 'confirmed',
+        reason: REASONS[i],
+        note: null,
+        createdBy: SEED_IDS.users.receptionist,
+        createdAt: iso(daysAgo(2)),
+        updatedAt: iso(today),
+      });
+    });
+  }
+  // A blocked slot: staff meeting next Tuesday 13:00-14:00 for everyone.
   {
     const nextTue = addDays(today, (2 - today.getDay() + 7) % 7 || 7);
     const s = new Date(nextTue);
@@ -822,20 +761,9 @@ export function buildSeedData(now: Date): SeedData {
       end: iso(e),
       reason: 'Reunion d equipe',
     });
-    const off = addDays(today, 3);
-    const os = new Date(off);
-    os.setHours(16, 0, 0, 0);
-    const oe = new Date(off);
-    oe.setHours(20, 0, 0, 0);
-    blockedTimes.push({
-      id: rnd.id(),
-      doctorId: SEED_IDS.doctors.lemine,
-      chairId: null,
-      start: iso(os),
-      end: iso(oe),
-      reason: 'Formation',
-    });
   }
+
+  // Chart entries and treatment plans  }
 
   // Chart entries and treatment plans for the first 35 patients.
   const chartEntries: ChartEntry[] = [];
@@ -854,7 +782,7 @@ export function buildSeedData(now: Date): SeedData {
   const surfaceSets: Surface[][] = [['O'], ['O'], ['M', 'O'], ['D', 'O'], ['M', 'O', 'D'], ['B']];
   const byCode = new Map(SEED_PROCEDURES.map((p) => [p.code, p]));
 
-  for (let i = 0; i < 35; i++) {
+  for (let i = 0; i < patients.length; i++) {
     const patient = patients[i];
     const doctorId = patient.primaryDoctorId ?? SEED_IDS.doctors.ahmed;
     const usedTeeth = new Set<number>();
@@ -882,7 +810,7 @@ export function buildSeedData(now: Date): SeedData {
       });
     }
 
-    if (i < 12) {
+    {
       // One treatment plan with two phases; early items completed and later ones planned.
       const planId = rnd.id();
       const createdAt = daysAgo(rnd.int(15, 60));
@@ -1131,8 +1059,8 @@ export function buildSeedData(now: Date): SeedData {
     details: 'Facturer les actes realises ce jour.',
     durationMinutes: null,
     delayDays: null,
-    createdBy: SEED_IDS.users.dentist,
-    createdByName: 'Fatimetou Mint Brahim',
+    createdBy: SEED_IDS.users.owner,
+    createdByName: 'Ahmed Ould Sidi',
     createdAt: iso(daysAgo(1, 17)),
     status: 'open',
     doneBy: null,

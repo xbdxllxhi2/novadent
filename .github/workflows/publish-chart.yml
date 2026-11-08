@@ -1,0 +1,83 @@
+name: Publish chart
+
+# Lints and renders the chart on every change; publishes it to GHCR as an OCI artifact on main.
+# Chart.yaml `version` is bumped by hand when templates change: a published version is
+# immutable and re-publishing it fails the job. `appVersion` is stamped from
+# frontend/package.json at package time (informational only; image.tag has no default and is
+# pinned per environment by the deploy repo).
+on:
+  pull_request:
+    paths: ["charts/**"]
+  push:
+    branches: [main]
+    paths: ["charts/**", ".github/workflows/publish-chart.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: publish-chart-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-template:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+
+      - name: Lint, render and assert invariants
+        run: |
+          set -euo pipefail
+          dir=charts/novadent-frontend
+          helm lint "$dir" -f "$dir/ci/test-values.yaml"
+          helm lint "$dir" -f "$dir/ci/test-values-remote.yaml"
+
+          # image.tag is required and 'latest' is refused.
+          out=$(helm template t "$dir" -f "$dir/ci/test-values.yaml" --set image.tag="" 2>&1 || true)
+          echo "$out" | grep -q "image.tag is required" || { echo "missing-tag guard broken"; exit 1; }
+          out=$(helm template t "$dir" -f "$dir/ci/test-values.yaml" --set image.tag=latest 2>&1 || true)
+          echo "$out" | grep -q "must not be 'latest'" || { echo "latest guard broken"; exit 1; }
+
+          # Remote mode without an API URL must refuse to render.
+          out=$(helm template t "$dir" -f "$dir/ci/test-values-remote.yaml" --set config.apiBaseUrl="" 2>&1 || true)
+          echo "$out" | grep -q "config.apiBaseUrl is required" || { echo "remote apiBaseUrl guard broken"; exit 1; }
+
+          rendered=$(helm template t "$dir" -f "$dir/ci/test-values.yaml")
+          echo "$rendered" | grep -nE 'localhost|127\.0\.0\.1' && { echo "localhost leaked"; exit 1; }
+          echo "$rendered" | grep -n ':latest' && { echo ":latest leaked"; exit 1; }
+          echo "$rendered" | grep -q 'BACKEND_MODE' || { echo "BACKEND_MODE missing"; exit 1; }
+          echo "All assertions passed."
+
+  publish:
+    if: github.event_name != 'pull_request'
+    needs: lint-template
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      # Required to push to ghcr.io using the automatic GITHUB_TOKEN.
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Package and push
+        run: |
+          set -euo pipefail
+          repo="oci://ghcr.io/${GITHUB_REPOSITORY,,}/charts"
+          dir=charts/novadent-frontend
+          version="$(sed -n 's/^version: \(.*\)/\1/p' "$dir/Chart.yaml" | head -1)"
+          if helm show chart "$repo/novadent-frontend" --version "$version" > /dev/null 2>&1; then
+            echo "::error::novadent-frontend $version is already published. Bump 'version' in $dir/Chart.yaml"
+            exit 1
+          fi
+          app_version="$(jq -r '.version // ""' frontend/package.json)"
+          mkdir -p dist
+          helm package "$dir" ${app_version:+--app-version "$app_version"} -d dist > /dev/null
+          helm push "dist/novadent-frontend-$version.tgz" "$repo"
+          echo "Published novadent-frontend $version (appVersion ${app_version:-<none>})"

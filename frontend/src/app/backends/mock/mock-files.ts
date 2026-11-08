@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BackendError } from '../../core/backend-error';
 
-const DB_NAME = 'novodent-mock-files';
+const DB_NAME = 'novadent-mock-files';
 const STORE = 'files';
 
 /**

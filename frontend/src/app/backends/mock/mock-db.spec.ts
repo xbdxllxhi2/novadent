@@ -9,8 +9,8 @@ describe('MockDb', () => {
   it('seeds on first use and records the seed version', () => {
     const db = new MockDb();
     expect(db.meta()?.seedVersion).toBe(SEED_VERSION);
-    expect(db.collection<Patient>('patients').all().length).toBeGreaterThan(50);
-    expect(db.collection('doctors').all()).toHaveLength(3);
+    expect(db.collection<Patient>('patients').all().length).toBe(3);
+    expect(db.collection('doctors').all()).toHaveLength(1);
     expect(db.collection('roles').all()).toHaveLength(5);
   });
 
@@ -39,10 +39,10 @@ describe('MockDb', () => {
 
   it('reseeds when the stored version differs', () => {
     localStorage.setItem(
-      'novodent.mock.meta',
+      'novadent.mock.meta',
       JSON.stringify({ seedVersion: -1, seededAt: '2020-01-01' }),
     );
-    localStorage.setItem('novodent.mock.patients', '[]');
+    localStorage.setItem('novadent.mock.patients', '[]');
     const db = new MockDb();
     expect(db.collection('patients').all().length).toBeGreaterThan(0);
   });
