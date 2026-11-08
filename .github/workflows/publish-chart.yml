@@ -72,9 +72,12 @@ jobs:
           repo="oci://ghcr.io/${GITHUB_REPOSITORY,,}/charts"
           dir=charts/novadent-frontend
           version="$(sed -n 's/^version: \(.*\)/\1/p' "$dir/Chart.yaml" | head -1)"
+          # A published version is immutable. Re-running the workflow (or pushing a change that
+          # did not bump the version) is therefore a no-op with a visible warning, not a failure:
+          # the templates that are live are the ones that were published under this version.
           if helm show chart "$repo/novadent-frontend" --version "$version" > /dev/null 2>&1; then
-            echo "::error::novadent-frontend $version is already published. Bump 'version' in $dir/Chart.yaml"
-            exit 1
+            echo "::warning::novadent-frontend $version is already published; skipping. Bump 'version' in $dir/Chart.yaml to publish template changes."
+            exit 0
           fi
           app_version="$(jq -r '.version // ""' frontend/package.json)"
           mkdir -p dist
