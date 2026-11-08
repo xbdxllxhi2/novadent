@@ -1,0 +1,16 @@
+<div
+  class="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-surface-700 px-6 py-10 text-center"
+>
+  <span
+    class="flex h-10 w-10 items-center justify-center rounded-full bg-surface-800 text-surface-400"
+  >
+    <i class="pi text-ui-lg" [class]="'pi pi-' + icon()"></i>
+  </span>
+  <p class="text-ui font-medium text-surface-200">{{ title() }}</p>
+  @if (description()) {
+    <p class="max-w-sm text-caption text-surface-400">{{ description() }}</p>
+  }
+  <div class="mt-2 flex gap-2">
+    <ng-content />
+  </div>
+</div>

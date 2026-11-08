@@ -1,0 +1,234 @@
+<section class="overflow-hidden rounded-xl border border-surface-700 bg-surface-900">
+  <div class="flex items-center justify-between border-b border-surface-700 px-4 py-2.5">
+    <h2 class="text-meta uppercase tracking-[0.6px] text-surface-400">
+      {{ 'settings.doctors' | transloco }}
+    </h2>
+    @if (canManage()) {
+      <p-button
+        [label]="'settings.newDoctor' | transloco"
+        icon="pi pi-plus"
+        size="small"
+        [text]="true"
+        (onClick)="editDoctor()"
+      />
+    }
+  </div>
+  <p-table [value]="staff.doctors()" styleClass="text-ui">
+    <ng-template #header>
+      <tr>
+        <th>{{ 'settings.nameLatin' | transloco }}</th>
+        <th>{{ 'settings.nameArabic' | transloco }}</th>
+        <th>{{ 'settings.specialty' | transloco }}</th>
+        <th class="w-[100px]">{{ 'common.status' | transloco }}</th>
+        <th class="w-[70px]"></th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-d>
+      <tr>
+        <td>
+          <span class="inline-flex items-center gap-2 text-surface-100"
+            ><span class="h-2.5 w-2.5 rounded-full" [style.background]="d.color"></span
+            >{{ d.nameLatin }}</span
+          >
+        </td>
+        <td class="text-caption text-surface-300" dir="rtl" lang="ar">{{ d.nameArabic }}</td>
+        <td class="text-caption text-surface-300">{{ d.specialty }}</td>
+        <td>
+          <app-status-tag [tone]="d.active ? 'success' : 'neutral'">{{
+            (d.active ? 'common.active' : 'common.inactive') | transloco
+          }}</app-status-tag>
+        </td>
+        <td class="text-end">
+          @if (canManage()) {
+            <p-button
+              icon="pi pi-pencil"
+              size="small"
+              [text]="true"
+              severity="secondary"
+              (onClick)="editDoctor(d)"
+              [ariaLabel]="'common.edit' | transloco"
+            />
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>
+
+<section class="overflow-hidden rounded-xl border border-surface-700 bg-surface-900">
+  <div class="flex items-center justify-between border-b border-surface-700 px-4 py-2.5">
+    <h2 class="text-meta uppercase tracking-[0.6px] text-surface-400">
+      {{ 'settings.chairs' | transloco }}
+    </h2>
+    @if (canManage()) {
+      <p-button
+        [label]="'settings.newChair' | transloco"
+        icon="pi pi-plus"
+        size="small"
+        [text]="true"
+        (onClick)="editChair()"
+      />
+    }
+  </div>
+  <p-table [value]="staff.chairs()" styleClass="text-ui">
+    <ng-template #header>
+      <tr>
+        <th class="w-[80px]">{{ 'settings.order' | transloco }}</th>
+        <th>{{ 'common.name' | transloco }}</th>
+        <th class="w-[100px]">{{ 'common.status' | transloco }}</th>
+        <th class="w-[70px]"></th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-c>
+      <tr>
+        <td class="num text-caption text-surface-300">{{ c.order }}</td>
+        <td class="text-surface-100">{{ c.name }}</td>
+        <td>
+          <app-status-tag [tone]="c.active ? 'success' : 'neutral'">{{
+            (c.active ? 'common.active' : 'common.inactive') | transloco
+          }}</app-status-tag>
+        </td>
+        <td class="text-end">
+          @if (canManage()) {
+            <p-button
+              icon="pi pi-pencil"
+              size="small"
+              [text]="true"
+              severity="secondary"
+              (onClick)="editChair(c)"
+              [ariaLabel]="'common.edit' | transloco"
+            />
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>
+
+<p-dialog
+  [visible]="doctorOpen()"
+  (visibleChange)="doctorOpen.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [header]="(doctor().id ? 'settings.editDoctor' : 'settings.newDoctor') | transloco"
+  [style]="{ width: 'min(92vw, 520px)' }"
+>
+  <div class="flex flex-col gap-3">
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'settings.nameLatin' | transloco }}
+      <input
+        pInputText
+        [ngModel]="doctor().nameLatin"
+        (ngModelChange)="patchDoctor({ nameLatin: $event })"
+        class="w-full"
+        dir="ltr"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'settings.nameArabic' | transloco }}
+      <input
+        pInputText
+        [ngModel]="doctor().nameArabic"
+        (ngModelChange)="patchDoctor({ nameArabic: $event })"
+        class="w-full"
+        dir="rtl"
+        lang="ar"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'settings.specialty' | transloco }}
+      <input
+        pInputText
+        [ngModel]="doctor().specialty"
+        (ngModelChange)="patchDoctor({ specialty: $event })"
+        class="w-full"
+      />
+    </label>
+    <div class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'settings.color' | transloco }}
+      <div class="flex flex-wrap gap-2">
+        @for (c of colors; track c) {
+          <button
+            type="button"
+            class="h-7 w-7 rounded-full border-2"
+            [style.background]="c"
+            [class.border-surface-100]="doctor().color === c"
+            [class.border-transparent]="doctor().color !== c"
+            (click)="patchDoctor({ color: c })"
+            [attr.aria-label]="c"
+          ></button>
+        }
+      </div>
+    </div>
+    <label class="flex items-center gap-2 text-caption text-surface-300">
+      <p-toggleswitch
+        [ngModel]="doctor().active"
+        (ngModelChange)="patchDoctor({ active: $event })"
+      />
+      {{ 'common.active' | transloco }}
+    </label>
+  </div>
+  <ng-template #footer>
+    <p-button
+      [label]="'common.cancel' | transloco"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="doctorOpen.set(false)"
+    />
+    <p-button
+      [label]="'common.save' | transloco"
+      icon="pi pi-check"
+      [loading]="staff.saving()"
+      (onClick)="saveDoctor()"
+    />
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  [visible]="chairOpen()"
+  (visibleChange)="chairOpen.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [header]="(chair().id ? 'settings.editChair' : 'settings.newChair') | transloco"
+  [style]="{ width: 'min(92vw, 420px)' }"
+>
+  <div class="flex flex-col gap-3">
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'common.name' | transloco }}
+      <input
+        pInputText
+        [ngModel]="chair().name"
+        (ngModelChange)="patchChair({ name: $event })"
+        class="w-full"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'settings.order' | transloco }}
+      <p-inputnumber
+        [ngModel]="chair().order"
+        (ngModelChange)="patchChair({ order: $event ?? 1 })"
+        [min]="1"
+        [showButtons]="true"
+        styleClass="w-full"
+      />
+    </label>
+    <label class="flex items-center gap-2 text-caption text-surface-300">
+      <p-toggleswitch [ngModel]="chair().active" (ngModelChange)="patchChair({ active: $event })" />
+      {{ 'common.active' | transloco }}
+    </label>
+  </div>
+  <ng-template #footer>
+    <p-button
+      [label]="'common.cancel' | transloco"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="chairOpen.set(false)"
+    />
+    <p-button
+      [label]="'common.save' | transloco"
+      icon="pi pi-check"
+      [loading]="staff.saving()"
+      (onClick)="saveChair()"
+    />
+  </ng-template>
+</p-dialog>

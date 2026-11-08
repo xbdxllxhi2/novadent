@@ -1,0 +1,33 @@
+<div
+  class="group relative flex h-full cursor-grab flex-col overflow-hidden rounded-md border-s-[3px] border border-surface-700 px-2 py-1 shadow-sm"
+  [class]="classes()"
+  [class.cursor-default]="!editable()"
+>
+  <div class="flex items-center gap-1">
+    <span class="num text-fine text-surface-400">{{ appointment().start | appDate: 'time' }}</span>
+    @if (hasAlerts()) {
+      <i class="pi pi-exclamation-triangle text-fine text-danger"></i>
+    }
+    @if (editable()) {
+      <button
+        type="button"
+        class="ms-auto -me-1 flex h-5 w-5 items-center justify-center rounded text-surface-400 opacity-0 transition-opacity hover:bg-surface-800 hover:text-surface-100 group-hover:opacity-100"
+        (pointerdown)="stop($event)"
+        (click)="stop($event); menu.toggle($event)"
+        [attr.aria-label]="'scheduler.statusChange' | transloco"
+      >
+        <i class="pi pi-ellipsis-h text-fine"></i>
+      </button>
+    }
+  </div>
+  <p class="truncate text-caption font-semibold leading-tight" dir="auto">
+    {{ patientName() || '...' }}
+  </p>
+  @if (!compact()) {
+    <p class="truncate text-meta leading-tight text-surface-300">{{ appointment().reason }}</p>
+    <p class="mt-auto truncate text-fine uppercase tracking-[0.4px] text-surface-400">
+      {{ 'apptStatus.' + appointment().status | transloco }}
+    </p>
+  }
+</div>
+<p-menu #menu [model]="statusMenu()" [popup]="true" appendTo="body" />

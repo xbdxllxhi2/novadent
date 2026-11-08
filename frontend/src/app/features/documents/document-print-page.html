@@ -1,0 +1,78 @@
+<div class="no-print flex items-center gap-2 border-b border-surface-700 bg-surface-900 px-4 py-2">
+  <p-button
+    [label]="'print.back' | transloco"
+    icon="pi pi-arrow-left"
+    [text]="true"
+    severity="secondary"
+    size="small"
+    (onClick)="back()"
+  />
+  <p-button
+    [label]="'print.print' | transloco"
+    icon="pi pi-print"
+    size="small"
+    styleClass="ms-auto"
+    (onClick)="print()"
+  />
+</div>
+
+@if (document(); as doc) {
+  <article
+    class="print-sheet mx-auto my-6 w-[210mm] max-w-full bg-white p-[16mm] text-black shadow-lg print:my-0 print:shadow-none"
+  >
+    <header class="flex items-start justify-between gap-6 border-b border-black/20 pb-4">
+      <div>
+        <h1 class="text-[20px] font-semibold">{{ clinic()?.name }}</h1>
+        <p class="text-[12px] text-black/70">{{ clinic()?.address }}</p>
+        <p class="text-[12px] text-black/70" dir="ltr">{{ clinic()?.phone | phone }}</p>
+      </div>
+      <div class="text-end">
+        @if (staff.doctor(doc.doctorId); as d) {
+          <p class="text-[14px] font-semibold">{{ d.nameLatin }}</p>
+          <p class="text-[12px] text-black/70" dir="rtl" lang="ar">{{ d.nameArabic }}</p>
+          @if (d.specialty) {
+            <p class="text-[12px] text-black/70">{{ d.specialty }}</p>
+          }
+        }
+      </div>
+    </header>
+
+    <p class="mt-6 text-center text-[16px] font-semibold uppercase tracking-[2px]">
+      {{ (doc.kind === 'prescription' ? 'print.prescription' : 'print.certificate') | transloco }}
+    </p>
+
+    @if (patient(); as p) {
+      <section class="mt-5 flex justify-between gap-6 text-[13px]">
+        <div>
+          <p class="text-[11px] uppercase tracking-[1px] text-black/60">
+            {{ 'print.patient' | transloco }}
+          </p>
+          <p class="font-semibold">{{ p.firstNameLatin }} {{ p.lastNameLatin }}</p>
+          <p dir="rtl" lang="ar" class="text-left">
+            {{ p.firstNameArabic }} {{ p.lastNameArabic }}
+          </p>
+          @if (age(p.birthDate); as a) {
+            <p class="text-black/70">{{ a }} {{ 'common.years' | transloco }}</p>
+          }
+        </div>
+        <div class="text-end">
+          <p class="text-[11px] uppercase tracking-[1px] text-black/60">
+            {{ 'print.date' | transloco }}
+          </p>
+          <p class="font-semibold">{{ doc.issuedAt | appDate: 'long' }}</p>
+          <p class="num text-[12px] text-black/70">{{ p.fileNumber }}</p>
+        </div>
+      </section>
+    }
+
+    <section class="mt-8 min-h-[90mm] whitespace-pre-line text-[14px] leading-[1.7]" dir="auto">
+      {{ doc.body }}
+    </section>
+
+    <footer class="mt-12 flex justify-end">
+      <div class="w-[70mm] border-t border-black/40 pt-2 text-center text-[12px] text-black/70">
+        {{ 'print.signature' | transloco }}
+      </div>
+    </footer>
+  </article>
+}

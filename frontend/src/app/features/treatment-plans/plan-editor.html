@@ -1,0 +1,208 @@
+<header class="flex flex-wrap items-center gap-3 border-b border-surface-700 px-4 py-3">
+  <div class="min-w-0 flex-1">
+    @if (editingTitle()) {
+      <input
+        pInputText
+        [ngModel]="titleDraft()"
+        (ngModelChange)="titleDraft.set($event)"
+        (keydown.enter)="saveRename()"
+        (blur)="saveRename()"
+        class="w-full max-w-sm"
+        autofocus
+      />
+    } @else {
+      <h3 class="flex items-center gap-2 text-ui-lg font-semibold text-surface-100">
+        {{ plan().title }}
+        <app-status-tag [tone]="planTone(plan().status)">{{
+          'planStatus.' + plan().status | transloco
+        }}</app-status-tag>
+        @if (editable()) {
+          <button
+            type="button"
+            class="text-surface-400 hover:text-surface-100"
+            (click)="startRename()"
+            [attr.aria-label]="'common.edit' | transloco"
+          >
+            <i class="pi pi-pencil text-meta"></i>
+          </button>
+        }
+      </h3>
+    }
+    <p class="mt-1 text-meta text-surface-400">
+      {{ 'common.sinceDate' | transloco: { date: plan().createdAt | appDate: 'medium' } }}
+      @if (plan().acceptedAt) {
+        <span class="mx-1">·</span>
+        {{ 'plans.acceptedOn' | transloco: { date: plan().acceptedAt | appDate: 'medium' } }}
+      }
+    </p>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="w-[160px]">
+      <p class="mb-1 text-meta text-surface-400">{{ 'plans.progress' | transloco: progress() }}</p>
+      <p-progressbar [value]="percent()" [showValue]="false" styleClass="!h-1.5" />
+    </div>
+    <div class="text-end">
+      <p class="text-meta uppercase tracking-[0.6px] text-surface-400">
+        {{ 'plans.estimate' | transloco }}
+      </p>
+      <p class="num text-ui-lg font-semibold text-surface-100">{{ total() | money }}</p>
+    </div>
+  </div>
+  <div class="flex items-center gap-2">
+    @if (plan().status === 'draft' && canWrite()) {
+      <p-button
+        [label]="'plans.propose' | transloco"
+        size="small"
+        [outlined]="true"
+        (onClick)="setStatus('proposed')"
+      />
+    }
+    @if ((plan().status === 'draft' || plan().status === 'proposed') && canAccept()) {
+      <p-button
+        [label]="'plans.accept' | transloco"
+        size="small"
+        icon="pi pi-check"
+        (onClick)="setStatus('accepted')"
+      />
+    }
+    @if (editable()) {
+      <p-button
+        icon="pi pi-ban"
+        size="small"
+        [text]="true"
+        severity="secondary"
+        [ariaLabel]="'plans.cancelPlan' | transloco"
+        (onClick)="setStatus('cancelled')"
+      />
+    }
+  </div>
+</header>
+
+@for (phase of plan().phases; track phase.id) {
+  <section class="border-b border-surface-700 last:border-b-0">
+    <div class="flex items-center gap-2 bg-surface-800/60 px-4 py-2">
+      <span class="text-caption font-semibold text-surface-200">{{ phase.title }}</span>
+      <span class="num text-meta text-surface-400">{{ phaseTotal(phase) | money }}</span>
+      @if (editable()) {
+        <p-button
+          [label]="'plans.addItem' | transloco"
+          icon="pi pi-plus"
+          size="small"
+          [text]="true"
+          styleClass="ms-auto"
+          (onClick)="addItem.emit({ planId: plan().id, phaseId: phase.id })"
+        />
+        @if (plan().phases.length > 1) {
+          <p-button
+            icon="pi pi-trash"
+            size="small"
+            [text]="true"
+            severity="secondary"
+            [ariaLabel]="'plans.removePhase' | transloco"
+            (onClick)="removePhase(phase)"
+          />
+        }
+      }
+    </div>
+    @if (phase.items.length === 0) {
+      <p class="px-4 py-3 text-caption text-surface-400">{{ 'common.noData' | transloco }}</p>
+    } @else {
+      <ul class="divide-y divide-surface-700">
+        @for (item of phase.items; track item.id) {
+          <li
+            class="grid grid-cols-[56px_1fr_auto] items-center gap-3 px-4 py-2 sm:grid-cols-[56px_1fr_140px_110px_110px_auto]"
+            [class.opacity-60]="item.status === 'cancelled'"
+          >
+            <span class="num text-caption font-semibold text-surface-100">
+              {{ item.toothFdi ?? '-'
+              }}<span class="text-surface-400">{{
+                item.toothFdi && item.surfaces.length
+                  ? ' ' + surfaces(item.toothFdi, item.surfaces)
+                  : ''
+              }}</span>
+            </span>
+            <span class="min-w-0">
+              <span
+                class="block truncate text-caption text-surface-100"
+                [class.line-through]="item.status === 'cancelled'"
+                >{{ procedures.get(item.procedureCode)?.name | localized }}</span
+              >
+              <span class="block truncate text-meta text-surface-400 sm:hidden">{{
+                staff.doctor(item.doctorId)?.nameLatin
+              }}</span>
+            </span>
+            <span class="hidden truncate text-caption text-surface-300 sm:block">{{
+              staff.doctor(item.doctorId)?.nameLatin
+            }}</span>
+            <span class="hidden sm:block">
+              @if (editable() && item.status === 'planned') {
+                <input
+                  pInputText
+                  type="number"
+                  class="num w-full text-end"
+                  [ngModel]="item.price"
+                  (change)="updatePrice(item, $any($event.target).valueAsNumber)"
+                  min="0"
+                  step="500"
+                />
+              } @else {
+                <span class="num block text-end text-caption text-surface-100">{{
+                  item.price | money
+                }}</span>
+              }
+            </span>
+            <span class="hidden sm:flex sm:flex-col sm:items-start sm:gap-0.5">
+              <app-status-tag [tone]="itemTone(item.status)">{{
+                'planItemStatus.' + item.status | transloco
+              }}</app-status-tag>
+              @if (item.invoiceLineId) {
+                <span class="text-fine uppercase tracking-[0.4px] text-success">{{
+                  'plans.invoiced' | transloco
+                }}</span>
+              } @else if (item.status === 'completed') {
+                <span class="text-fine uppercase tracking-[0.4px] text-warn">{{
+                  'plans.toInvoice' | transloco
+                }}</span>
+              }
+            </span>
+            <span class="flex justify-end">
+              @if (hasActions(item)) {
+                <p-button
+                  icon="pi pi-ellipsis-h"
+                  size="small"
+                  [text]="true"
+                  severity="secondary"
+                  (onClick)="menuItem.set(item); menu.toggle($event)"
+                  [ariaLabel]="'common.actions' | transloco"
+                />
+              }
+            </span>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}
+
+@if (editable()) {
+  <div class="flex items-center gap-2 px-4 py-3">
+    <input
+      pInputText
+      [ngModel]="newPhaseTitle()"
+      (ngModelChange)="newPhaseTitle.set($event)"
+      [placeholder]="'plans.phaseTitle' | transloco"
+      class="w-full max-w-xs"
+      (keydown.enter)="addPhase()"
+    />
+    <p-button
+      [label]="'plans.addPhase' | transloco"
+      icon="pi pi-plus"
+      size="small"
+      [outlined]="true"
+      severity="secondary"
+      (onClick)="addPhase()"
+    />
+  </div>
+}
+
+<p-menu #menu [model]="itemMenu()" [popup]="true" appendTo="body" />

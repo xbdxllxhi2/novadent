@@ -1,0 +1,50 @@
+@if (entries().length === 0) {
+  <app-empty-state icon="th-large" [title]="'odontogram.noHistory' | transloco" />
+} @else {
+  <ul class="divide-y divide-surface-700 rounded-xl border border-surface-700 bg-surface-900">
+    @for (e of entries(); track e.id) {
+      <li
+        class="flex items-start gap-3 px-3 py-2"
+        [class.bg-surface-800]="focusFdi() === e.toothFdi"
+      >
+        <span class="num mt-0.5 w-[52px] flex-none text-caption font-semibold text-surface-100">
+          {{ e.toothFdi
+          }}<span class="text-surface-400">{{
+            e.surfaces.length ? ' ' + surfaces(e.toothFdi, e.surfaces) : ''
+          }}</span>
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-caption text-surface-100">
+            @if (e.kind === 'procedure' && procedures.get(e.procedureCode); as proc) {
+              {{ proc.name | localized }}
+            } @else if (e.condition) {
+              {{ 'conditions.' + e.condition | transloco }}
+            } @else {
+              {{ e.procedureCode }}
+            }
+          </p>
+          <p class="truncate text-meta text-surface-400">
+            {{ e.recordedAt | appDate: 'short' }} <span class="mx-1">·</span>
+            {{ staff.doctor(e.doctorId)?.nameLatin }}
+            @if (e.note) {
+              <span class="mx-1">·</span> {{ e.note }}
+            }
+          </p>
+        </div>
+        <app-status-tag [tone]="tone(e.status)">{{
+          'clinicalStatus.' + e.status | transloco
+        }}</app-status-tag>
+        @if (canEdit(e)) {
+          <p-button
+            icon="pi pi-times"
+            size="small"
+            [text]="true"
+            severity="secondary"
+            [ariaLabel]="'odontogram.void' | transloco"
+            (onClick)="askVoid(e)"
+          />
+        }
+      </li>
+    }
+  </ul>
+}

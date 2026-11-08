@@ -1,0 +1,86 @@
+<div class="mb-3 flex flex-wrap items-center gap-1.5">
+  @for (k of kinds; track k) {
+    <button
+      type="button"
+      class="rounded-full border px-2.5 py-1 text-meta transition-colors"
+      [class.border-transparent]="filter() === k"
+      [class.bg-surface-800]="filter() === k"
+      [class.text-surface-100]="filter() === k"
+      [class.border-surface-700]="filter() !== k"
+      [class.text-surface-400]="filter() !== k"
+      (click)="filter.set(k)"
+    >
+      {{ (k === 'all' ? 'common.all' : 'timeline.' + k) | transloco }}
+    </button>
+  }
+</div>
+
+@if (loading()) {
+  <app-loading-block [rows]="5" />
+} @else if (days().length === 0) {
+  <app-empty-state icon="history" [title]="'timeline.empty' | transloco" />
+} @else {
+  <ol class="relative ms-3 border-s border-surface-700">
+    @for (day of days(); track day.date) {
+      <li class="mb-6 ms-5">
+        <span
+          class="absolute -start-[7px] mt-1 h-3.5 w-3.5 rounded-full border-2 border-surface-950 bg-primary"
+        ></span>
+        <h3 class="mb-2 text-caption font-semibold capitalize text-surface-100">
+          {{ day.date | appDate: 'weekdayLong' }}
+        </h3>
+        <ul class="flex flex-col gap-1.5">
+          @for (e of day.events; track e.id) {
+            <li
+              class="flex items-start gap-3 rounded-lg border border-surface-700 bg-surface-900 px-3 py-2"
+            >
+              <span
+                class="mt-0.5 flex h-7 w-7 flex-none items-center justify-center rounded-md bg-surface-800 text-surface-400"
+              >
+                <i class="pi text-caption" [class]="'pi ' + icons[e.kind]"></i>
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="flex flex-wrap items-center gap-2 text-caption text-surface-100">
+                  <span class="num text-meta text-surface-400">{{ e.at | appDate: 'time' }}</span>
+                  <span class="text-meta uppercase tracking-[0.4px] text-surface-400">{{
+                    'timeline.' + e.kind | transloco
+                  }}</span>
+                  @if (e.link) {
+                    <a
+                      [routerLink]="e.link"
+                      class="truncate font-medium hover:underline"
+                      dir="auto"
+                      >{{ isKey(e.title) ? (e.title | transloco) : e.title }}</a
+                    >
+                  } @else {
+                    <span class="truncate font-medium" dir="auto">{{
+                      isKey(e.title) ? (e.title | transloco) : e.title
+                    }}</span>
+                  }
+                  @if (amountOf(e); as amount) {
+                    <span class="num text-surface-200">{{ amount | money }}</span>
+                  }
+                  @if (e.detail) {
+                    @if (isKey(e.detail)) {
+                      <app-status-tag [tone]="e.tone">{{ e.detail | transloco }}</app-status-tag>
+                    } @else {
+                      <span class="truncate text-meta text-surface-400" dir="auto">{{
+                        e.detail
+                      }}</span>
+                    }
+                  }
+                </p>
+                @if (staff.doctor(e.doctorId); as d) {
+                  <p class="mt-0.5 flex items-center gap-1.5 text-meta text-surface-400">
+                    <span class="h-2 w-2 rounded-full" [style.background]="d.color"></span
+                    >{{ d.nameLatin }}
+                  </p>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      </li>
+    }
+  </ol>
+}

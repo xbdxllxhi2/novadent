@@ -1,0 +1,85 @@
+@if (canWrite()) {
+  <div class="mb-4 rounded-xl border border-surface-700 bg-surface-900 p-4">
+    <h2 class="mb-2 text-meta uppercase tracking-[0.6px] text-surface-400">
+      {{ 'patients.newNote' | transloco }}
+    </h2>
+    <textarea
+      pTextarea
+      [ngModel]="draft()"
+      (ngModelChange)="draft.set($event)"
+      rows="3"
+      class="w-full"
+      [placeholder]="'patients.notePlaceholder' | transloco"
+    ></textarea>
+    <div class="mt-2 flex justify-end">
+      <p-button
+        [label]="'common.save' | transloco"
+        icon="pi pi-check"
+        size="small"
+        [disabled]="!draft().trim()"
+        [loading]="store.saving()"
+        (onClick)="add()"
+      />
+    </div>
+  </div>
+}
+
+@if (store.notes().length === 0) {
+  <app-empty-state icon="file-edit" [title]="'patients.noNotes' | transloco" />
+} @else {
+  <ul class="flex flex-col gap-3">
+    @for (note of store.notes(); track note.id) {
+      <li class="rounded-xl border border-surface-700 bg-surface-900 p-4">
+        <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-surface-400">
+          <span class="inline-flex items-center gap-1.5 font-medium text-surface-200">
+            <span
+              class="h-2 w-2 rounded-full"
+              [style.background]="staff.doctor(note.doctorId)?.color"
+            ></span>
+            {{ staff.doctor(note.doctorId)?.nameLatin }}
+          </span>
+          <span>{{ note.createdAt | appDate: 'dateTime' }}</span>
+          @if (canEdit(note) && editingId() !== note.id) {
+            <p-button
+              [label]="'common.edit' | transloco"
+              icon="pi pi-pencil"
+              size="small"
+              [text]="true"
+              styleClass="ms-auto"
+              (onClick)="startEdit(note)"
+            />
+          }
+        </div>
+        @if (editingId() === note.id) {
+          <textarea
+            pTextarea
+            [ngModel]="editDraft()"
+            (ngModelChange)="editDraft.set($event)"
+            rows="4"
+            class="w-full"
+          ></textarea>
+          <div class="mt-2 flex justify-end gap-2">
+            <p-button
+              [label]="'common.cancel' | transloco"
+              size="small"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="editingId.set(null)"
+            />
+            <p-button
+              [label]="'common.save' | transloco"
+              size="small"
+              icon="pi pi-check"
+              [loading]="store.saving()"
+              (onClick)="saveEdit()"
+            />
+          </div>
+        } @else {
+          <p class="whitespace-pre-line text-ui leading-relaxed text-surface-100" dir="auto">
+            {{ note.body }}
+          </p>
+        }
+      </li>
+    }
+  </ul>
+}

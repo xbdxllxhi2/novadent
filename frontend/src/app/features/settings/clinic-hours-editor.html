@@ -1,0 +1,88 @@
+<div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+  <div>
+    <h2 class="text-meta uppercase tracking-[0.6px] text-surface-400">
+      {{ 'hours.title' | transloco }}
+    </h2>
+    <p class="mt-1 text-caption text-surface-400">{{ 'hours.hint' | transloco }}</p>
+  </div>
+  @if (canManage()) {
+    <p-button
+      [label]="'hours.copyToWeekdays' | transloco"
+      icon="pi pi-copy"
+      size="small"
+      [text]="true"
+      (onClick)="copyMondayToWeekdays()"
+    />
+  }
+</div>
+
+<div class="divide-y divide-surface-700">
+  @for (day of weekdays; track day) {
+    <div class="grid grid-cols-[110px_1fr] items-start gap-3 py-2.5">
+      <span class="pt-2 text-caption font-medium text-surface-100">{{
+        'weekday.' + day | transloco
+      }}</span>
+      <div class="flex flex-wrap items-center gap-2">
+        @for (r of ranges(day); track $index; let i = $index) {
+          <div class="flex items-center gap-1.5">
+            <p-select
+              [ngModel]="r.start"
+              (ngModelChange)="setRange(day, i, 'start', $event)"
+              [options]="timeOptions"
+              [disabled]="!canManage()"
+              appendTo="body"
+              styleClass="w-[104px] num"
+              size="small"
+              [filter]="true"
+            />
+            <span class="text-surface-400">-</span>
+            <p-select
+              [ngModel]="r.end"
+              (ngModelChange)="setRange(day, i, 'end', $event)"
+              [options]="timeOptions"
+              [disabled]="!canManage()"
+              appendTo="body"
+              styleClass="w-[104px] num"
+              size="small"
+              [filter]="true"
+              [invalid]="r.end <= r.start"
+            />
+            @if (canManage()) {
+              <p-button
+                icon="pi pi-times"
+                size="small"
+                [text]="true"
+                severity="secondary"
+                (onClick)="removeRange(day, i)"
+                [ariaLabel]="'common.delete' | transloco"
+              />
+            }
+          </div>
+        } @empty {
+          <span class="pt-2 text-caption text-surface-400">{{ 'hours.closed' | transloco }}</span>
+        }
+        @if (canManage() && ranges(day).length < 3) {
+          <p-button
+            [label]="'hours.addRange' | transloco"
+            icon="pi pi-plus"
+            size="small"
+            [text]="true"
+            (onClick)="addRange(day)"
+          />
+        }
+      </div>
+    </div>
+  }
+</div>
+
+@if (canManage()) {
+  <div class="mt-3 flex justify-end">
+    <p-button
+      [label]="'common.save' | transloco"
+      icon="pi pi-check"
+      size="small"
+      [loading]="settings.saving()"
+      (onClick)="save()"
+    />
+  </div>
+}

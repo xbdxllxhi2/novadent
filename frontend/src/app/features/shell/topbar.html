@@ -1,0 +1,62 @@
+<button
+  type="button"
+  class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-surface-400 hover:bg-surface-800 hover:text-surface-100 lg:hidden"
+  (click)="menuClick.emit()"
+  [attr.aria-label]="'nav.menu' | transloco"
+>
+  <i class="pi pi-bars"></i>
+</button>
+
+<div class="min-w-0 flex-1">
+  @if (canSearch()) {
+    <p-autocomplete
+      [(ngModel)]="query"
+      [suggestions]="suggestions()"
+      (completeMethod)="search($event)"
+      (onSelect)="open($event)"
+      [minLength]="2"
+      [delay]="200"
+      [optionLabel]="patientLabel"
+      [placeholder]="'home.quickSearchPlaceholder' | transloco"
+      inputStyleClass="w-full"
+      styleClass="w-full max-w-md"
+      [showEmptyMessage]="true"
+      [emptyMessage]="'patients.noResults' | transloco"
+    >
+      <ng-template #item let-patient>
+        <div class="flex items-center justify-between gap-3">
+          <app-patient-name [patient]="patient" />
+          <span class="num text-caption text-surface-400">{{ patient.phone | phone }}</span>
+        </div>
+      </ng-template>
+    </p-autocomplete>
+  }
+</div>
+
+<p-select
+  [options]="langOptions"
+  optionLabel="label"
+  optionValue="code"
+  [ngModel]="locale.lang()"
+  (onChange)="locale.setLang($event.value)"
+  styleClass="w-[128px]"
+  [attr.aria-label]="'settings.language' | transloco"
+/>
+
+<app-theme-toggle />
+
+<button
+  type="button"
+  class="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-surface-800"
+  (click)="menu.toggle($event)"
+>
+  <p-avatar [label]="auth.initials()" shape="circle" styleClass="!bg-primary/15 !text-primary" />
+  <span class="hidden min-w-0 text-start sm:block">
+    <span class="block truncate text-caption font-medium leading-tight text-surface-100">{{
+      auth.user()?.displayName
+    }}</span>
+    <span class="block truncate text-meta leading-tight text-surface-400">{{ roleLabel() }}</span>
+  </span>
+  <i class="pi pi-angle-down hidden text-meta text-surface-400 sm:block"></i>
+</button>
+<p-menu #menu [model]="userMenu()" [popup]="true" appendTo="body" />

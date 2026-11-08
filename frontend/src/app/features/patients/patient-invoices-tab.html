@@ -1,0 +1,61 @@
+<div class="mb-3 flex items-center justify-between gap-3">
+  <p class="text-caption text-surface-300">
+    {{ 'patients.balance' | transloco }}
+    <span class="num font-semibold text-surface-100">{{ outstanding() | money }}</span>
+  </p>
+  @if (auth.can('invoice.write')) {
+    <p-button
+      [label]="'billing.newInvoice' | transloco"
+      icon="pi pi-plus"
+      size="small"
+      (onClick)="createOpen.set(true)"
+    />
+  }
+</div>
+
+@if (!loading() && invoices().length === 0) {
+  <app-empty-state icon="receipt" [title]="'patients.noInvoices' | transloco" />
+} @else {
+  <div class="overflow-hidden rounded-xl border border-surface-700 bg-surface-900">
+    <p-table
+      [value]="invoices()"
+      [loading]="loading()"
+      [rowHover]="true"
+      styleClass="text-ui"
+      [tableStyle]="{ 'min-width': '600px' }"
+    >
+      <ng-template #header>
+        <tr>
+          <th class="w-[150px]">{{ 'billing.number' | transloco }}</th>
+          <th class="w-[120px]">{{ 'billing.issuedAt' | transloco }}</th>
+          <th class="text-end">{{ 'billing.total' | transloco }}</th>
+          <th class="text-end">{{ 'billing.paid' | transloco }}</th>
+          <th class="text-end">{{ 'billing.balance' | transloco }}</th>
+          <th class="w-[150px]">{{ 'common.status' | transloco }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-inv>
+        <tr class="cursor-pointer" (click)="open(inv)" tabindex="0" (keydown.enter)="open(inv)">
+          <td class="num text-caption text-surface-100">{{ inv.number }}</td>
+          <td class="text-caption text-surface-300">{{ inv.issuedAt | appDate: 'short' }}</td>
+          <td class="num text-end text-caption text-surface-100">{{ inv.total | money }}</td>
+          <td class="num text-end text-caption text-surface-300">{{ inv.paid | money }}</td>
+          <td class="num text-end text-caption" [class.text-warn]="balance(inv) > 0">
+            {{ balance(inv) | money }}
+          </td>
+          <td>
+            <app-status-tag [tone]="tone(inv.status)">{{
+              'invoiceStatus.' + inv.status | transloco
+            }}</app-status-tag>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+}
+
+<app-create-invoice-dialog
+  [(visible)]="createOpen"
+  [patientId]="patientId()"
+  (created)="created($event)"
+/>

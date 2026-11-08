@@ -1,0 +1,187 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [header]="(isEdit() ? 'scheduler.editAppointment' : 'scheduler.newAppointment') | transloco"
+  [style]="{ width: 'min(96vw, 640px)' }"
+>
+  <div class="flex flex-col gap-4">
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'common.patient' | transloco }}
+      <p-autocomplete
+        [ngModel]="patient()"
+        (ngModelChange)="patient.set($event)"
+        [suggestions]="suggestions()"
+        (completeMethod)="search($event)"
+        [minLength]="2"
+        [delay]="200"
+        [optionLabel]="patientLabel"
+        [placeholder]="'scheduler.patientSearch' | transloco"
+        [forceSelection]="true"
+        [showClear]="true"
+        appendTo="body"
+        styleClass="w-full"
+        inputStyleClass="w-full"
+        [invalid]="submitted() && !patient()"
+      >
+        <ng-template #item let-p>
+          <div class="flex items-center justify-between gap-3">
+            <app-patient-name [patient]="p" />
+            <span class="num text-caption text-surface-400" dir="ltr">{{ p.phone | phone }}</span>
+          </div>
+        </ng-template>
+      </p-autocomplete>
+      @if (patient(); as p) {
+        <span class="text-meta text-surface-400"
+          >{{ p.firstNameLatin }} {{ p.lastNameLatin }}
+          <span dir="ltr">{{ p.phone | phone }}</span></span
+        >
+      }
+    </label>
+
+    <div class="grid gap-3 sm:grid-cols-2">
+      <label class="flex flex-col gap-1 text-caption text-surface-300">
+        {{ 'common.doctor' | transloco }}
+        <p-select
+          [ngModel]="doctorId()"
+          (ngModelChange)="doctorId.set($event)"
+          [options]="staff.activeDoctors()"
+          optionLabel="nameLatin"
+          optionValue="id"
+          appendTo="body"
+          styleClass="w-full"
+          [invalid]="submitted() && !doctorId()"
+        >
+          <ng-template #item let-d>
+            <span class="flex items-center gap-2"
+              ><span class="h-2.5 w-2.5 rounded-full" [style.background]="d.color"></span
+              >{{ d.nameLatin }}</span
+            >
+          </ng-template>
+        </p-select>
+      </label>
+      <label class="flex flex-col gap-1 text-caption text-surface-300">
+        {{ 'common.chair' | transloco }}
+        <p-select
+          [ngModel]="chairId()"
+          (ngModelChange)="chairId.set($event)"
+          [options]="staff.activeChairs()"
+          optionLabel="name"
+          optionValue="id"
+          appendTo="body"
+          styleClass="w-full"
+          [invalid]="submitted() && !chairId()"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-caption text-surface-300">
+        {{ 'common.date' | transloco }}
+        <p-datepicker
+          [ngModel]="date()"
+          (ngModelChange)="date.set($event)"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          appendTo="body"
+          styleClass="w-full"
+        />
+      </label>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'scheduler.startTime' | transloco }}
+          <p-select
+            [ngModel]="startHm()"
+            (ngModelChange)="startHm.set($event)"
+            [options]="timeOptions"
+            appendTo="body"
+            styleClass="w-full num"
+            [filter]="true"
+            filterBy=""
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'scheduler.duration' | transloco }}
+          <p-select
+            [ngModel]="duration()"
+            (ngModelChange)="duration.set($event)"
+            [options]="durations"
+            appendTo="body"
+            styleClass="w-full"
+          >
+            <ng-template #selectedItem let-d>{{
+              'scheduler.minutes' | transloco: { count: d }
+            }}</ng-template>
+            <ng-template #item let-d>{{
+              'scheduler.minutes' | transloco: { count: d }
+            }}</ng-template>
+          </p-select>
+        </label>
+      </div>
+    </div>
+
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'scheduler.reason' | transloco }}
+      <input
+        pInputText
+        [ngModel]="reason()"
+        (ngModelChange)="reason.set($event)"
+        class="w-full"
+        [invalid]="submitted() && !reason().trim()"
+        autocomplete="off"
+      />
+    </label>
+
+    @if (isEdit()) {
+      <div class="flex flex-col gap-1 text-caption text-surface-300">
+        {{ 'common.status' | transloco }}
+        <p-selectbutton
+          [ngModel]="status()"
+          (ngModelChange)="status.set($event)"
+          [options]="statuses"
+          [allowEmpty]="false"
+          size="small"
+        >
+          <ng-template #item let-s>{{ 'apptStatus.' + s | transloco }}</ng-template>
+        </p-selectbutton>
+      </div>
+    }
+
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'common.notes' | transloco }}
+      <span class="text-surface-400">({{ 'common.optional' | transloco }})</span>
+      <textarea
+        pTextarea
+        [ngModel]="note()"
+        (ngModelChange)="note.set($event)"
+        rows="2"
+        class="w-full"
+      ></textarea>
+    </label>
+
+    @for (c of conflicts(); track c.kind) {
+      <p-message
+        [severity]="c.kind === 'outside-hours' ? 'warn' : 'error'"
+        [text]="conflictKey(c) | transloco"
+        size="small"
+      />
+    }
+  </div>
+
+  <ng-template #footer>
+    <p-button
+      type="button"
+      [label]="'common.cancel' | transloco"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="visible.set(false)"
+    />
+    <p-button
+      type="button"
+      [label]="'common.save' | transloco"
+      icon="pi pi-check"
+      [loading]="store.saving()"
+      [disabled]="blocking().length > 0"
+      (onClick)="submit()"
+    />
+  </ng-template>
+</p-dialog>

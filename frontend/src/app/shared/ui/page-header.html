@@ -1,0 +1,11 @@
+<div class="flex flex-wrap items-end justify-between gap-3 pb-4">
+  <div class="min-w-0">
+    <h1 class="truncate text-[22px] font-semibold leading-tight text-surface-100">{{ title() }}</h1>
+    @if (subtitle()) {
+      <p class="mt-1 text-caption text-surface-400">{{ subtitle() }}</p>
+    }
+  </div>
+  <div class="flex flex-wrap items-center gap-2">
+    <ng-content />
+  </div>
+</div>

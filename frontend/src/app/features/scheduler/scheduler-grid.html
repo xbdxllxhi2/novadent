@@ -1,0 +1,95 @@
+<div
+  class="grid min-w-max"
+  [style.grid-template-columns]="'56px repeat(' + columns().length + ', minmax(170px, 1fr))'"
+  [class.select-none]="drag() !== null"
+  [class.cursor-grabbing]="drag()?.kind === 'move'"
+  [class.cursor-ns-resize]="drag()?.kind === 'resize'"
+>
+  <!-- Header row -->
+  <div class="sticky top-0 z-20 border-b border-e border-surface-700 bg-surface-900"></div>
+  @for (col of columns(); track col.key) {
+    <div
+      class="sticky top-0 z-20 flex items-center gap-2 border-b border-e border-surface-700 bg-surface-900 px-3 py-2 last:border-e-0"
+    >
+      @if (col.color) {
+        <span class="h-2.5 w-2.5 flex-none rounded-full" [style.background]="col.color"></span>
+      }
+      <div class="min-w-0">
+        <p class="truncate text-caption font-semibold text-surface-100">{{ col.title }}</p>
+        @if (col.subtitle) {
+          <p class="truncate text-meta text-surface-400">{{ col.subtitle }}</p>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Time ruler -->
+  <div class="relative border-e border-surface-700" [style.height.px]="bodyHeight()">
+    @for (mark of hourMarks(); track mark.label) {
+      <span
+        class="num absolute -translate-y-1/2 pe-2 text-meta text-surface-400 end-0"
+        [style.top.px]="mark.top"
+        >{{ mark.label }}</span
+      >
+    }
+  </div>
+
+  <!-- Columns -->
+  @for (col of columns(); track col.key; let ci = $index) {
+    <div
+      #columnEl
+      class="scheduler-column relative border-e border-surface-700 last:border-e-0"
+      [style.height.px]="bodyHeight()"
+      [style.--slot-h.px]="slotHeight"
+      (click)="onColumnClick($event, col, columnEl)"
+    >
+      @for (band of closedBands().get(col.key) ?? []; track band.top) {
+        <div
+          class="scheduler-closed pointer-events-none absolute inset-x-0"
+          [style.top.px]="band.top"
+          [style.height.px]="band.height"
+        ></div>
+      }
+      @for (band of blockedBands().get(col.key) ?? []; track band.top) {
+        <div
+          class="scheduler-blocked absolute inset-x-0 z-[5] flex items-start px-2 py-1 text-meta text-surface-300"
+          [style.top.px]="band.top"
+          [style.height.px]="band.height"
+          [title]="band.blocked?.reason"
+        >
+          <i class="pi pi-ban me-1 text-fine"></i>
+          <span class="truncate">{{ band.blocked?.reason }}</span>
+        </div>
+      }
+      @for (p of placed().get(col.key) ?? []; track p.appointment.id) {
+        <div
+          class="absolute z-10 px-0.5"
+          [style.top.px]="p.top"
+          [style.height.px]="previewHeight(p)"
+          [style.inset-inline-start]="'calc(' + (p.lane / p.lanes) * 100 + '% + 2px)'"
+          [style.width]="'calc(' + 100 / p.lanes + '% - 4px)'"
+          [style]="previewStyle(p.appointment.id)"
+        >
+          <app-appointment-card
+            class="block h-full"
+            [appointment]="p.appointment"
+            [patient]="patients.get(p.appointment.patientId)"
+            [compact]="p.height <= slotHeight * 2"
+            [editable]="editable()"
+            [canCancel]="canCancel()"
+            (pointerdown)="startMove($event, p, ci)"
+            (statusChange)="statusChange.emit({ id: p.appointment.id, status: $event })"
+            (openPatient)="openPatient.emit(p.appointment.patientId)"
+          />
+          @if (editable()) {
+            <div
+              class="absolute inset-x-2 bottom-0 z-20 h-2 cursor-ns-resize rounded-b"
+              (pointerdown)="startResize($event, p, ci)"
+              [attr.aria-label]="'scheduler.duration' | transloco"
+            ></div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

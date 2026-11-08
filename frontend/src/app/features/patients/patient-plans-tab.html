@@ -1,0 +1,73 @@
+<div class="mb-3 flex items-center justify-between gap-3">
+  <h2 class="text-ui-lg font-semibold text-surface-100">{{ 'plans.title' | transloco }}</h2>
+  @if (canWrite()) {
+    <p-button
+      [label]="'plans.newPlan' | transloco"
+      icon="pi pi-plus"
+      size="small"
+      (onClick)="newOpen.set(true)"
+    />
+  }
+</div>
+
+@if (store.loading() && store.plans().length === 0) {
+  <app-loading-block [rows]="3" height="5rem" />
+} @else if (store.plans().length === 0) {
+  <app-empty-state
+    icon="list-check"
+    [title]="'plans.noPlans' | transloco"
+    [description]="'plans.noPlansHint' | transloco"
+  />
+} @else {
+  <div class="flex flex-col gap-4">
+    @for (plan of active(); track plan.id) {
+      <app-plan-editor [plan]="plan" (addItem)="addItem($event)" />
+    }
+    @for (plan of closed(); track plan.id) {
+      <app-plan-editor [plan]="plan" (addItem)="addItem($event)" class="opacity-80" />
+    }
+  </div>
+}
+
+<p-dialog
+  [visible]="newOpen()"
+  (visibleChange)="newOpen.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [header]="'plans.newPlan' | transloco"
+  [style]="{ width: 'min(92vw, 420px)' }"
+>
+  <label class="flex flex-col gap-1 text-caption text-surface-300">
+    {{ 'plans.planTitle' | transloco }}
+    <input
+      pInputText
+      [ngModel]="newTitle()"
+      (ngModelChange)="newTitle.set($event)"
+      [placeholder]="'plans.defaultTitle' | transloco"
+      class="w-full"
+      (keydown.enter)="createPlan()"
+      autofocus
+    />
+  </label>
+  <ng-template #footer>
+    <p-button
+      [label]="'common.cancel' | transloco"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="newOpen.set(false)"
+    />
+    <p-button
+      [label]="'common.create' | transloco"
+      icon="pi pi-check"
+      [loading]="store.saving()"
+      (onClick)="createPlan()"
+    />
+  </ng-template>
+</p-dialog>
+
+<app-procedure-picker-dialog
+  [(visible)]="pickerOpen"
+  mode="plan"
+  [patientId]="patientId()"
+  [target]="pickerTarget()"
+/>

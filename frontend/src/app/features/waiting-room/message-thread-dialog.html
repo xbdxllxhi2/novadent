@@ -1,0 +1,65 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [header]="'messages.title' | transloco"
+  [style]="{ width: 'min(96vw, 520px)' }"
+>
+  @if (patient(); as p) {
+    <p class="mb-3 flex items-center gap-2 text-caption text-surface-300">
+      <app-patient-name [patient]="p" [compact]="true" />
+      @if (appointment(); as a) {
+        <span class="num text-surface-400">{{ a.start | appDate: 'time' }}</span>
+        <span class="truncate text-surface-400">{{ a.reason }}</span>
+      }
+    </p>
+  }
+
+  <div
+    class="flex max-h-[320px] flex-col gap-2 overflow-y-auto rounded-lg border border-surface-700 bg-surface-950 p-3"
+  >
+    @for (m of messages(); track m.id) {
+      <div
+        class="flex max-w-[85%] flex-col gap-0.5 rounded-lg px-3 py-2"
+        [class.self-end]="isMine(m.authorId)"
+        [class.bg-primary/12]="isMine(m.authorId)"
+        [class.bg-surface-800]="!isMine(m.authorId)"
+      >
+        <span class="text-meta text-surface-400"
+          >{{ m.authorName }} <span class="mx-1">·</span> {{ m.createdAt | appDate: 'time' }}</span
+        >
+        <span class="whitespace-pre-line text-caption text-surface-100" dir="auto">{{
+          m.body
+        }}</span>
+      </div>
+    } @empty {
+      <p class="py-4 text-center text-caption text-surface-400">
+        {{ 'messages.empty' | transloco }}
+      </p>
+    }
+  </div>
+
+  @if (canWrite()) {
+    <div class="mt-3 flex items-end gap-2">
+      <textarea
+        pTextarea
+        [ngModel]="draft()"
+        (ngModelChange)="draft.set($event)"
+        rows="2"
+        class="w-full"
+        [placeholder]="'messages.placeholder' | transloco"
+        (keydown.control.enter)="send()"
+        dir="auto"
+      ></textarea>
+      <p-button
+        icon="pi pi-send"
+        [label]="'messages.send' | transloco"
+        [disabled]="!draft().trim()"
+        [loading]="store.saving()"
+        (onClick)="send()"
+      />
+    </div>
+  }
+</p-dialog>

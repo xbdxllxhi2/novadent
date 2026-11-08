@@ -1,0 +1,130 @@
+<div class="no-print flex items-center gap-2 border-b border-surface-700 bg-surface-900 px-4 py-2">
+  <p-button
+    [label]="'print.back' | transloco"
+    icon="pi pi-arrow-left"
+    [text]="true"
+    severity="secondary"
+    size="small"
+    (onClick)="back()"
+  />
+  <p-button
+    [label]="'print.print' | transloco"
+    icon="pi pi-print"
+    size="small"
+    styleClass="ms-auto"
+    (onClick)="print()"
+  />
+</div>
+
+@if (invoice(); as inv) {
+  <article
+    class="print-sheet mx-auto my-6 w-[210mm] max-w-full bg-white p-[14mm] text-black shadow-lg print:my-0 print:shadow-none"
+  >
+    <header class="flex items-start justify-between gap-6 border-b border-black/20 pb-4">
+      <div>
+        <h1 class="text-[22px] font-semibold">{{ clinic()?.name }}</h1>
+        <p class="text-[12px] text-black/70">{{ clinic()?.address }}</p>
+        <p class="text-[12px] text-black/70" dir="ltr">{{ clinic()?.phone | phone }}</p>
+      </div>
+      <div class="text-end">
+        <p class="text-[12px] uppercase tracking-[1px] text-black/60">
+          {{ 'print.invoice' | transloco }}
+        </p>
+        <p class="num text-[18px] font-semibold">{{ inv.number }}</p>
+        <p class="text-[12px] text-black/70">
+          {{ 'print.date' | transloco }}: {{ inv.issuedAt | appDate: 'long' }}
+        </p>
+      </div>
+    </header>
+
+    @if (patient(); as p) {
+      <section class="mt-4 grid grid-cols-2 gap-4 text-[13px]">
+        <div>
+          <p class="text-[11px] uppercase tracking-[1px] text-black/60">
+            {{ 'print.patient' | transloco }}
+          </p>
+          <p class="font-semibold">{{ p.firstNameLatin }} {{ p.lastNameLatin }}</p>
+          <p dir="rtl" lang="ar" class="text-left">
+            {{ p.firstNameArabic }} {{ p.lastNameArabic }}
+          </p>
+          <p class="text-black/70" dir="ltr">{{ p.phone | phone }}</p>
+        </div>
+        <div class="text-end">
+          <p class="text-[11px] uppercase tracking-[1px] text-black/60">
+            {{ 'print.fileNumber' | transloco }}
+          </p>
+          <p class="num font-semibold">{{ p.fileNumber }}</p>
+        </div>
+      </section>
+    }
+
+    <table class="mt-6 w-full border-collapse text-[13px]">
+      <thead>
+        <tr
+          class="border-b border-black/40 text-start text-[11px] uppercase tracking-[0.6px] text-black/60"
+        >
+          <th class="py-2 text-start">{{ 'billing.description' | transloco }}</th>
+          <th class="py-2 text-start">{{ 'common.tooth' | transloco }}</th>
+          <th class="py-2 text-start">{{ 'common.doctor' | transloco }}</th>
+          <th class="py-2 text-end">{{ 'billing.unitPrice' | transloco }}</th>
+          <th class="py-2 text-end">{{ 'billing.quantity' | transloco }}</th>
+          <th class="py-2 text-end">{{ 'billing.amount' | transloco }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (line of inv.lines; track line.id) {
+          <tr class="border-b border-black/10">
+            <td class="py-2">{{ line.description }}</td>
+            <td class="num py-2">{{ line.toothFdi ?? '' }}</td>
+            <td class="py-2">{{ staff.doctor(line.doctorId)?.nameLatin }}</td>
+            <td class="num py-2 text-end">{{ line.unitPrice | money }}</td>
+            <td class="num py-2 text-end">{{ line.quantity }}</td>
+            <td class="num py-2 text-end">{{ line.amount | money }}</td>
+          </tr>
+        }
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="5" class="pt-3 text-end font-semibold">{{ 'billing.total' | transloco }}</td>
+          <td class="num pt-3 text-end font-semibold">{{ inv.total | money }}</td>
+        </tr>
+        <tr>
+          <td colspan="5" class="text-end text-black/70">{{ 'billing.paid' | transloco }}</td>
+          <td class="num text-end text-black/70">{{ inv.paid | money }}</td>
+        </tr>
+        <tr>
+          <td colspan="5" class="text-end text-[15px] font-semibold">
+            {{ 'billing.balance' | transloco }}
+          </td>
+          <td class="num text-end text-[15px] font-semibold">{{ balance() | money }}</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    @if (payments().length) {
+      <section class="mt-6 text-[12px]">
+        <p class="mb-1 text-[11px] uppercase tracking-[1px] text-black/60">
+          {{ 'billing.payments' | transloco }}
+        </p>
+        <ul>
+          @for (p of payments(); track p.id) {
+            <li class="flex justify-between border-b border-black/10 py-1">
+              <span
+                >{{ p.paidAt | appDate: 'short' }}
+                <span class="text-black/60"
+                  >{{ 'payMethod.' + p.method | transloco
+                  }}{{ p.reference ? ' ' + p.reference : '' }}</span
+                ></span
+              >
+              <span class="num">{{ p.amount | money }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <footer class="mt-10 text-center text-[12px] text-black/60">
+      {{ 'print.footer' | transloco }}
+    </footer>
+  </article>
+}

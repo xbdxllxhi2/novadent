@@ -1,0 +1,83 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [header]="'billing.addPayment' | transloco"
+  [style]="{ width: 'min(92vw, 460px)' }"
+>
+  <div class="flex flex-col gap-4">
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'billing.paymentAmount' | transloco }}
+      <p-inputnumber
+        [ngModel]="amount()"
+        (ngModelChange)="amount.set($event ?? 0)"
+        [min]="0"
+        [max]="balance()"
+        [useGrouping]="true"
+        [suffix]="' ' + ('common.currency' | transloco)"
+        styleClass="w-full"
+        inputStyleClass="w-full num"
+        [invalid]="!valid()"
+      />
+      <span class="text-meta text-surface-400"
+        >{{ 'billing.balance' | transloco }}: <span class="num">{{ balance() }}</span></span
+      >
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'billing.paymentMethod' | transloco }}
+      <p-select
+        [ngModel]="method()"
+        (ngModelChange)="method.set($event)"
+        [options]="methods"
+        appendTo="body"
+        styleClass="w-full"
+      >
+        <ng-template #selectedItem let-m>{{ 'payMethod.' + m | transloco }}</ng-template>
+        <ng-template #item let-m>{{ 'payMethod.' + m | transloco }}</ng-template>
+      </p-select>
+    </label>
+    <div class="grid gap-3 sm:grid-cols-2">
+      <label class="flex flex-col gap-1 text-caption text-surface-300">
+        {{ 'billing.paymentDate' | transloco }}
+        <p-datepicker
+          [ngModel]="paidAt()"
+          (ngModelChange)="paidAt.set($event)"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          [showTime]="true"
+          [hourFormat]="'24'"
+          appendTo="body"
+          styleClass="w-full"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-caption text-surface-300">
+        {{ 'billing.paymentReference' | transloco }}
+        <span class="text-surface-400">({{ 'common.optional' | transloco }})</span>
+        <input
+          pInputText
+          [ngModel]="reference()"
+          (ngModelChange)="reference.set($event)"
+          class="w-full num"
+          autocomplete="off"
+        />
+      </label>
+    </div>
+  </div>
+  <ng-template #footer>
+    <p-button
+      [label]="'common.cancel' | transloco"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="visible.set(false)"
+    />
+    <p-button
+      [label]="'billing.addPayment' | transloco"
+      icon="pi pi-check"
+      [disabled]="!valid()"
+      [loading]="store.saving()"
+      (onClick)="submit()"
+    />
+  </ng-template>
+</p-dialog>

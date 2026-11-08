@@ -1,0 +1,241 @@
+<section class="overflow-hidden rounded-xl border border-surface-700 bg-surface-900">
+  <div class="flex items-center justify-between border-b border-surface-700 px-4 py-2.5">
+    <h2 class="text-meta uppercase tracking-[0.6px] text-surface-400">
+      {{ 'staff.users' | transloco }}
+    </h2>
+    @if (canManage()) {
+      <p-button
+        [label]="'staff.newUser' | transloco"
+        icon="pi pi-plus"
+        size="small"
+        [text]="true"
+        (onClick)="editUser()"
+      />
+    }
+  </div>
+  <p-table [value]="staff.users()" styleClass="text-ui" [tableStyle]="{ 'min-width': '640px' }">
+    <ng-template #header>
+      <tr>
+        <th>{{ 'staff.displayName' | transloco }}</th>
+        <th class="w-[140px]">{{ 'staff.username' | transloco }}</th>
+        <th class="w-[160px]">{{ 'staff.role' | transloco }}</th>
+        <th>{{ 'staff.linkedDoctor' | transloco }}</th>
+        <th class="w-[100px]">{{ 'common.status' | transloco }}</th>
+        <th class="w-[60px]"></th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-u>
+      <tr>
+        <td class="text-surface-100">{{ u.displayName }}</td>
+        <td class="num text-caption text-surface-300">{{ u.username }}</td>
+        <td class="text-caption text-surface-300">
+          {{ roleName(staff.roleById().get(u.roleId)) }}
+        </td>
+        <td class="text-caption text-surface-300">
+          {{ staff.doctor(u.doctorId)?.nameLatin ?? '-' }}
+        </td>
+        <td>
+          <app-status-tag [tone]="u.active ? 'success' : 'neutral'">{{
+            (u.active ? 'common.active' : 'common.inactive') | transloco
+          }}</app-status-tag>
+        </td>
+        <td class="text-end">
+          @if (canManage()) {
+            <p-button
+              icon="pi pi-pencil"
+              size="small"
+              [text]="true"
+              severity="secondary"
+              (onClick)="editUser(u)"
+              [ariaLabel]="'common.edit' | transloco"
+            />
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>
+
+<section class="overflow-hidden rounded-xl border border-surface-700 bg-surface-900">
+  <div class="flex items-center justify-between border-b border-surface-700 px-4 py-2.5">
+    <h2 class="text-meta uppercase tracking-[0.6px] text-surface-400">
+      {{ 'staff.roles' | transloco }}
+    </h2>
+    @if (canManage()) {
+      <p-button
+        [label]="'staff.newRole' | transloco"
+        icon="pi pi-plus"
+        size="small"
+        [text]="true"
+        (onClick)="editRole()"
+      />
+    }
+  </div>
+  <ul class="divide-y divide-surface-700">
+    @for (r of staff.roles(); track r.id) {
+      <li class="flex items-center gap-3 px-4 py-2.5">
+        <span
+          class="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-surface-800 text-surface-400"
+          ><i class="pi" [class.pi-lock]="r.locked" [class.pi-shield]="!r.locked"></i
+        ></span>
+        <div class="min-w-0 flex-1">
+          <p class="text-caption font-medium text-surface-100">
+            {{ roleName(r) }}
+            @if (r.builtIn) {
+              <span class="ms-1 text-meta font-normal text-surface-400"
+                >({{ 'staff.builtIn' | transloco }})</span
+              >
+            }
+          </p>
+          <p class="text-meta text-surface-400">
+            {{ 'staff.permissionCount' | transloco: { count: r.permissions.length } }}
+          </p>
+        </div>
+        @if (canManage() && !r.locked) {
+          <p-button
+            icon="pi pi-pencil"
+            size="small"
+            [text]="true"
+            severity="secondary"
+            (onClick)="editRole(r)"
+            [ariaLabel]="'common.edit' | transloco"
+          />
+        }
+      </li>
+    }
+  </ul>
+</section>
+
+<p-dialog
+  [visible]="userOpen()"
+  (visibleChange)="userOpen.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [header]="(user().id ? 'staff.editUser' : 'staff.newUser') | transloco"
+  [style]="{ width: 'min(92vw, 480px)' }"
+>
+  <div class="flex flex-col gap-3">
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'staff.displayName' | transloco }}
+      <input
+        pInputText
+        [ngModel]="user().displayName"
+        (ngModelChange)="patchUser({ displayName: $event })"
+        class="w-full"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'staff.username' | transloco }}
+      <input
+        pInputText
+        [ngModel]="user().username"
+        (ngModelChange)="patchUser({ username: $event })"
+        class="w-full num"
+        dir="ltr"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'staff.role' | transloco }}
+      <p-select
+        [ngModel]="user().roleId"
+        (ngModelChange)="patchUser({ roleId: $event })"
+        [options]="roleOptions()"
+        optionLabel="label"
+        optionValue="id"
+        appendTo="body"
+        styleClass="w-full"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'staff.linkedDoctor' | transloco }}
+      <p-select
+        [ngModel]="user().doctorId"
+        (ngModelChange)="patchUser({ doctorId: $event })"
+        [options]="doctorOptions()"
+        optionLabel="nameLatin"
+        optionValue="id"
+        appendTo="body"
+        styleClass="w-full"
+      />
+    </label>
+    <label class="flex items-center gap-2 text-caption text-surface-300">
+      <p-toggleswitch [ngModel]="user().active" (ngModelChange)="patchUser({ active: $event })" />
+      {{ 'common.active' | transloco }}
+    </label>
+  </div>
+  <ng-template #footer>
+    <p-button
+      [label]="'common.cancel' | transloco"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="userOpen.set(false)"
+    />
+    <p-button
+      [label]="'common.save' | transloco"
+      icon="pi pi-check"
+      [loading]="staff.saving()"
+      (onClick)="saveUser()"
+    />
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  [visible]="roleOpen()"
+  (visibleChange)="roleOpen.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [header]="(role().id ? 'staff.editRole' : 'staff.newRole') | transloco"
+  [style]="{ width: 'min(96vw, 720px)' }"
+>
+  <div class="flex flex-col gap-4">
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'staff.roleName' | transloco }}
+      <input
+        pInputText
+        [ngModel]="role().name"
+        (ngModelChange)="role.set({ ...role(), name: $event })"
+        class="w-full max-w-sm"
+      />
+    </label>
+    <div>
+      <p class="mb-2 text-meta uppercase tracking-[0.6px] text-surface-400">
+        {{ 'staff.permissions' | transloco }}
+      </p>
+      <div class="grid gap-4 sm:grid-cols-2">
+        @for (g of groups; track g.group) {
+          <fieldset class="rounded-lg border border-surface-700 p-3">
+            <legend class="px-1 text-caption font-semibold text-surface-200">
+              {{ 'permissions.group_' + g.group | transloco }}
+            </legend>
+            <div class="flex flex-col gap-1.5">
+              @for (p of g.permissions; track p) {
+                <label class="flex items-center gap-2 text-caption text-surface-300">
+                  <p-checkbox
+                    [binary]="true"
+                    [ngModel]="hasPermission(p)"
+                    (ngModelChange)="togglePermission(p, $event)"
+                  />
+                  {{ labelKey(p) | transloco }}
+                </label>
+              }
+            </div>
+          </fieldset>
+        }
+      </div>
+    </div>
+  </div>
+  <ng-template #footer>
+    <p-button
+      [label]="'common.cancel' | transloco"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="roleOpen.set(false)"
+    />
+    <p-button
+      [label]="'common.save' | transloco"
+      icon="pi pi-check"
+      [loading]="staff.saving()"
+      (onClick)="saveRole()"
+    />
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,99 @@
+@if (store.current(); as patient) {
+  <header
+    class="mb-4 flex flex-wrap items-start justify-between gap-4 rounded-xl border border-surface-700 bg-surface-900 px-5 py-4"
+  >
+    <div class="flex min-w-0 items-start gap-4">
+      <span
+        class="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-primary/15 text-ui-lg font-semibold text-primary"
+      >
+        {{ patient.firstNameLatin.slice(0, 1) + patient.lastNameLatin.slice(0, 1) }}
+      </span>
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <h1 class="text-[20px] font-semibold leading-tight">
+            <app-patient-name [patient]="patient" />
+          </h1>
+          @if (patient.archived) {
+            <app-status-tag tone="neutral">{{ 'patients.archived' | transloco }}</app-status-tag>
+          }
+        </div>
+        <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-surface-400">
+          <span class="num">{{ patient.fileNumber }}</span>
+          <span>{{
+            patient.gender === 'M' ? ('patients.male' | transloco) : ('patients.female' | transloco)
+          }}</span>
+          @if (age(patient.birthDate); as a) {
+            <span>{{ a }} {{ 'common.years' | transloco }}</span>
+          }
+          <span class="num" dir="ltr">{{ patient.phone | phone }}</span>
+          @if (staff.doctor(patient.primaryDoctorId); as d) {
+            <span class="inline-flex items-center gap-1"
+              ><span class="h-2 w-2 rounded-full" [style.background]="d.color"></span
+              >{{ d.nameLatin }}</span
+            >
+          }
+        </p>
+        <div class="mt-2"><app-medical-alerts [alerts]="patient.alerts" /></div>
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <p-button
+        *appHasPermission="'appointment.write'"
+        [label]="'patients.bookAppointment' | transloco"
+        icon="pi pi-calendar-plus"
+        [outlined]="true"
+        size="small"
+        routerLink="/scheduler"
+        [queryParams]="{ patientId: patient.id }"
+      />
+      <p-button
+        *appHasPermission="'task.write'"
+        [label]="'patients.requestToReception' | transloco"
+        icon="pi pi-send"
+        [outlined]="true"
+        severity="secondary"
+        size="small"
+        (onClick)="requestOpen.set(true)"
+      />
+      <p-button
+        *appHasPermission="'patient.write'"
+        [label]="'common.edit' | transloco"
+        icon="pi pi-pencil"
+        [outlined]="true"
+        size="small"
+        (onClick)="editOpen.set(true)"
+      />
+      <p-button
+        *appHasPermission="'patient.archive'"
+        [label]="(patient.archived ? 'patients.restore' : 'patients.archive') | transloco"
+        [icon]="patient.archived ? 'pi pi-undo' : 'pi pi-inbox'"
+        severity="secondary"
+        [text]="true"
+        size="small"
+        (onClick)="toggleArchive(patient)"
+      />
+    </div>
+  </header>
+
+  <p-tabs [value]="activeTab()" styleClass="mb-4">
+    <p-tablist>
+      @for (tab of tabs(); track tab.path) {
+        <p-tab
+          [value]="tab.path"
+          [routerLink]="tab.path ? ['/patients', patient.id, tab.path] : ['/patients', patient.id]"
+          class="flex items-center gap-2"
+        >
+          <i class="pi" [class]="'pi ' + tab.icon"></i>
+          <span>{{ tab.labelKey | transloco }}</span>
+        </p-tab>
+      }
+    </p-tablist>
+  </p-tabs>
+
+  <router-outlet />
+
+  <app-patient-form-dialog [(visible)]="editOpen" [patient]="patient" />
+  <app-task-dialog [(visible)]="requestOpen" [patient]="patient" />
+} @else {
+  <app-loading-block [rows]="3" height="4rem" />
+}

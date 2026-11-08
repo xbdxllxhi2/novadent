@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Seeded with the light page color (surface-950 in novodent-preset.ts); ThemeService re-reads the
+       live token after boot, so the preset stays the single source of truth. -->
+    <meta name="theme-color" content="#F7F9FA" />
+    <script>
+      // Applied before first paint to avoid a flash of the wrong scheme. Light is the default; dark is
+      // opt-in through the toggle only. ThemeService must keep resolving the preference the same way.
+      (function () {
+        var dark = localStorage.getItem('theme') === 'dark';
+        if (dark) {
+          document.documentElement.classList.add('dark');
+          document.querySelector('meta[name="theme-color"]').content = '#0F1417';
+        }
+        var scale = localStorage.getItem('type-scale');
+        if (scale === '0.92' || scale === '1.1')
+          document.documentElement.style.setProperty('--type-scale', scale);
+        var lang = localStorage.getItem('app-lang');
+        if (lang === 'ar') {
+          document.documentElement.lang = 'ar';
+          document.documentElement.dir = 'rtl';
+        } else if (lang === 'en') {
+          document.documentElement.lang = 'en';
+        }
+      })();
+    </script>
+    <!-- Runtime configuration. Absolute path on purpose: this tag is parsed before <base href="/">, so a
+       relative path would resolve against a deep route and 404. -->
+    <script src="/config.js"></script>
+    <title>Novodent</title>
+    <base href="/" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
+</html>

@@ -1,0 +1,135 @@
+<app-page-header [title]="'scheduler.title' | transloco">
+  <p-button
+    *appHasPermission="'appointment.block'"
+    [label]="'scheduler.blockTime' | transloco"
+    icon="pi pi-ban"
+    [outlined]="true"
+    severity="secondary"
+    (onClick)="blockOpen.set(true)"
+  />
+  <p-button
+    *appHasPermission="'appointment.write'"
+    [label]="'scheduler.newAppointment' | transloco"
+    icon="pi pi-plus"
+    (onClick)="newAppointment()"
+  />
+</app-page-header>
+
+<div class="mb-3 flex flex-wrap items-center gap-2">
+  <p-button
+    icon="pi pi-angle-left"
+    [rounded]="true"
+    [text]="true"
+    severity="secondary"
+    (onClick)="store.step(-1)"
+    [ariaLabel]="'common.back' | transloco"
+  />
+  <p-button
+    [label]="'common.today' | transloco"
+    [outlined]="true"
+    severity="secondary"
+    size="small"
+    (onClick)="store.today()"
+  />
+  <p-button
+    icon="pi pi-angle-right"
+    [rounded]="true"
+    [text]="true"
+    severity="secondary"
+    (onClick)="store.step(1)"
+  />
+  <p-datepicker
+    [ngModel]="store.anchorDate()"
+    (ngModelChange)="onDatePicked($event)"
+    dateFormat="dd/mm/yy"
+    [showIcon]="true"
+    iconDisplay="input"
+    appendTo="body"
+    styleClass="w-[150px]"
+  />
+  <h2 class="ms-1 text-ui-lg font-semibold capitalize text-surface-100">{{ title() }}</h2>
+
+  <div class="ms-auto flex flex-wrap items-center gap-2">
+    @if (store.view() === 'day') {
+      <p-selectbutton
+        [ngModel]="store.mode()"
+        (ngModelChange)="store.setMode($event)"
+        [options]="modeOptions"
+        optionValue="value"
+        [allowEmpty]="false"
+        size="small"
+      >
+        <ng-template #item let-o>{{ o.labelKey | transloco }}</ng-template>
+      </p-selectbutton>
+    } @else {
+      <p-select
+        [ngModel]="weekDoctor()?.id"
+        (ngModelChange)="store.weekDoctorId.set($event)"
+        [options]="staff.activeDoctors()"
+        optionLabel="nameLatin"
+        optionValue="id"
+        appendTo="body"
+        styleClass="w-[220px]"
+        size="small"
+      />
+    }
+    <p-selectbutton
+      [ngModel]="store.view()"
+      (ngModelChange)="setView($event)"
+      [options]="viewOptions"
+      optionValue="value"
+      [allowEmpty]="false"
+      size="small"
+    >
+      <ng-template #item let-o>{{ o.labelKey | transloco }}</ng-template>
+    </p-selectbutton>
+  </div>
+</div>
+
+@if (store.view() === 'day' && store.mode() === 'doctor') {
+  <div class="mb-3 flex flex-wrap items-center gap-1.5">
+    @for (d of staff.activeDoctors(); track d.id) {
+      <button
+        type="button"
+        class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-meta transition-colors"
+        [class.border-surface-700]="store.hiddenDoctorIds().has(d.id)"
+        [class.text-surface-400]="store.hiddenDoctorIds().has(d.id)"
+        [class.bg-surface-800]="!store.hiddenDoctorIds().has(d.id)"
+        [class.border-transparent]="!store.hiddenDoctorIds().has(d.id)"
+        [class.text-surface-100]="!store.hiddenDoctorIds().has(d.id)"
+        (click)="store.toggleDoctor(d.id)"
+      >
+        <span
+          class="h-2 w-2 rounded-full"
+          [style.background]="d.color"
+          [style.opacity]="store.hiddenDoctorIds().has(d.id) ? 0.35 : 1"
+        ></span>
+        {{ d.nameLatin }}
+      </button>
+    }
+  </div>
+}
+
+<app-scheduler-grid
+  class="max-h-[calc(100vh-240px)]"
+  [columns]="columns()"
+  [appointments]="store.appointments()"
+  [blockedTimes]="store.blockedTimes()"
+  [hours]="settings.hours()"
+  [startMin]="bounds().startMin"
+  [endMin]="bounds().endMin"
+  [editable]="canEdit()"
+  [canCancel]="canCancel()"
+  (slotClick)="onSlotClick($event)"
+  (cardClick)="onCardClick($event)"
+  (move)="onMove($event)"
+  (resize)="onResize($event)"
+  (statusChange)="onStatusChange($event)"
+  (openPatient)="openPatient($event)"
+/>
+@if (canEdit()) {
+  <p class="mt-2 text-meta text-surface-400">{{ 'scheduler.dropHint' | transloco }}</p>
+}
+
+<app-appointment-dialog [(visible)]="dialogOpen" [appointment]="editing()" [draft]="draft()" />
+<app-blocked-time-dialog [(visible)]="blockOpen" />

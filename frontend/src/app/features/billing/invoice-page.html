@@ -1,0 +1,195 @@
+@if (store.invoice(); as inv) {
+  <app-page-header [title]="inv.number" [subtitle]="inv.issuedAt | appDate: 'long'">
+    <p-button
+      [label]="'billing.print' | transloco"
+      icon="pi pi-print"
+      [outlined]="true"
+      severity="secondary"
+      size="small"
+      [routerLink]="['/print/invoice', inv.id]"
+    />
+    @if (canVoid()) {
+      <p-button
+        [label]="'billing.voidInvoice' | transloco"
+        icon="pi pi-ban"
+        [outlined]="true"
+        severity="danger"
+        size="small"
+        (onClick)="voidOpen.set(true)"
+      />
+    }
+    @if (canPay()) {
+      <p-button
+        [label]="'billing.addPayment' | transloco"
+        icon="pi pi-wallet"
+        size="small"
+        (onClick)="paymentOpen.set(true)"
+      />
+    }
+  </app-page-header>
+
+  <div
+    class="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-surface-700 bg-surface-900 px-4 py-3"
+  >
+    <app-status-tag [tone]="tone(inv.status)">{{
+      'invoiceStatus.' + inv.status | transloco
+    }}</app-status-tag>
+    @if (patient(); as p) {
+      <a [routerLink]="['/patients', p.id]" class="hover:underline"
+        ><app-patient-name [patient]="p"
+      /></a>
+      <span class="num text-caption text-surface-400">{{ p.fileNumber }}</span>
+    }
+    @if (inv.status === 'void') {
+      <span class="ms-auto text-caption text-surface-400"
+        >{{ 'billing.voidedOn' | transloco: { date: inv.voidedAt | appDate: 'short' } }}
+        {{ inv.voidReason ? ' : ' + inv.voidReason : '' }}</span
+      >
+    }
+  </div>
+
+  <div class="grid gap-3 sm:grid-cols-3">
+    <app-kpi-tile [label]="'billing.total' | transloco" [value]="inv.total | money" />
+    <app-kpi-tile [label]="'billing.paid' | transloco" [value]="inv.paid | money" />
+    <app-kpi-tile
+      [label]="'billing.balance' | transloco"
+      [value]="store.balance() | money"
+      icon="wallet"
+    />
+  </div>
+
+  <section class="mt-4 overflow-hidden rounded-xl border border-surface-700 bg-surface-900">
+    <h2
+      class="border-b border-surface-700 px-4 py-2.5 text-meta uppercase tracking-[0.6px] text-surface-400"
+    >
+      {{ 'billing.lines' | transloco }}
+    </h2>
+    <p-table [value]="inv.lines" styleClass="text-ui" [tableStyle]="{ 'min-width': '640px' }">
+      <ng-template #header>
+        <tr>
+          <th>{{ 'billing.description' | transloco }}</th>
+          <th class="w-[80px]">{{ 'common.tooth' | transloco }}</th>
+          <th>{{ 'common.doctor' | transloco }}</th>
+          <th class="w-[60px] text-end">{{ 'billing.quantity' | transloco }}</th>
+          <th class="w-[130px] text-end">{{ 'billing.unitPrice' | transloco }}</th>
+          <th class="w-[130px] text-end">{{ 'billing.amount' | transloco }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-line>
+        <tr>
+          <td class="text-surface-100">
+            {{ line.description }}
+            <span class="num text-meta text-surface-400">{{ line.procedureCode }}</span>
+          </td>
+          <td class="num text-caption text-surface-300">{{ line.toothFdi ?? '-' }}</td>
+          <td class="text-caption text-surface-300">
+            {{ staff.doctor(line.doctorId)?.nameLatin }}
+          </td>
+          <td class="num text-end text-caption text-surface-300">{{ line.quantity }}</td>
+          <td class="num text-end text-caption text-surface-300">{{ line.unitPrice | money }}</td>
+          <td class="num text-end text-caption text-surface-100">{{ line.amount | money }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #footer>
+        <tr>
+          <td colspan="5" class="text-end text-caption text-surface-400">
+            {{ 'billing.total' | transloco }}
+          </td>
+          <td class="num text-end font-semibold text-surface-100">{{ inv.total | money }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </section>
+
+  <section class="mt-4 overflow-hidden rounded-xl border border-surface-700 bg-surface-900">
+    <h2
+      class="border-b border-surface-700 px-4 py-2.5 text-meta uppercase tracking-[0.6px] text-surface-400"
+    >
+      {{ 'billing.payments' | transloco }}
+    </h2>
+    @if (store.payments().length === 0) {
+      <p class="px-4 py-4 text-caption text-surface-400">{{ 'billing.noPayments' | transloco }}</p>
+    } @else {
+      <p-table
+        [value]="store.payments()"
+        styleClass="text-ui"
+        [tableStyle]="{ 'min-width': '560px' }"
+      >
+        <ng-template #header>
+          <tr>
+            <th class="w-[150px]">{{ 'billing.paymentDate' | transloco }}</th>
+            <th class="w-[140px]">{{ 'billing.paymentMethod' | transloco }}</th>
+            <th>{{ 'billing.paymentReference' | transloco }}</th>
+            <th>{{ 'billing.receivedBy' | transloco }}</th>
+            <th class="w-[130px] text-end">{{ 'billing.amount' | transloco }}</th>
+            <th class="w-[60px]"></th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-p>
+          <tr [class.opacity-50]="p.voided">
+            <td class="text-caption text-surface-300">{{ p.paidAt | appDate: 'dateTime' }}</td>
+            <td class="text-caption text-surface-100">{{ 'payMethod.' + p.method | transloco }}</td>
+            <td class="num text-caption text-surface-300">{{ p.reference || '-' }}</td>
+            <td class="text-caption text-surface-300">{{ userName(p.receivedBy) }}</td>
+            <td class="num text-end text-caption text-surface-100" [class.line-through]="p.voided">
+              {{ p.amount | money }}
+            </td>
+            <td class="text-end">
+              @if (!p.voided && inv.status !== 'void') {
+                <p-button
+                  *appHasPermission="'payment.void'"
+                  icon="pi pi-times"
+                  size="small"
+                  [text]="true"
+                  severity="secondary"
+                  [ariaLabel]="'billing.voidPayment' | transloco"
+                  (onClick)="askVoidPayment(p)"
+                />
+              }
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </section>
+
+  <app-payment-dialog [(visible)]="paymentOpen" [invoice]="inv" [balance]="store.balance()" />
+
+  <p-dialog
+    [visible]="voidOpen()"
+    (visibleChange)="voidOpen.set($event)"
+    [modal]="true"
+    [draggable]="false"
+    [header]="'billing.voidInvoice' | transloco"
+    [style]="{ width: 'min(92vw, 460px)' }"
+  >
+    <p class="mb-3 text-caption text-surface-300">{{ 'billing.voidConfirm' | transloco }}</p>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'billing.voidReason' | transloco }}
+      <textarea
+        pTextarea
+        [ngModel]="voidReason()"
+        (ngModelChange)="voidReason.set($event)"
+        rows="2"
+        class="w-full"
+      ></textarea>
+    </label>
+    <ng-template #footer>
+      <p-button
+        [label]="'common.cancel' | transloco"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="voidOpen.set(false)"
+      />
+      <p-button
+        [label]="'billing.voidInvoice' | transloco"
+        icon="pi pi-ban"
+        severity="danger"
+        [loading]="store.saving()"
+        (onClick)="submitVoid()"
+      />
+    </ng-template>
+  </p-dialog>
+} @else {
+  <app-loading-block [rows]="4" height="4rem" />
+}

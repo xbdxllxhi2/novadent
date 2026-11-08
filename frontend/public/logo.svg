@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 120" width="220" height="120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D6E7F2"/>
+      <stop offset="1" stop-color="#A9C9DE"/>
+    </linearGradient>
+    <path id="tube" d="M0 -3.5 L5 -3.5 L9 -6 L47 -7 L47 -8.5 L51 -8.5 L51 8.5 L47 8.5 L47 7 L9 6 L5 3.5 L0 3.5 Z"/>
+  </defs>
+  <rect width="220" height="120" fill="url(#bg)"/>
+  <!-- swoosh: thin start at the top left, thick down the left, under the tooth, thin tip at the lower right -->
+  <path fill="#1E3A5F" d="M62 24 C 30 44, 26 86, 62 104 C 88.8 117.4, 136 116, 164 92 C 138 108, 98 110, 72 96 C 44 82, 44 48, 66 28 Z"/>
+  <!-- five point star inlaid on the inner edge of the arc, lower left -->
+  <path fill="#DCE8F1" stroke="#1E3A5F" stroke-width="1.2" stroke-linejoin="round" d="M68 81 L70.2 86.9 L76.6 87.2 L71.6 91.2 L73.3 97.3 L68 93.8 L62.7 97.3 L64.4 91.2 L59.4 87.2 L65.8 86.9 Z"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M125.36 36.98 C 124 42, 129 46, 127 52 C 125 58, 118 60, 119 67 C 120 72, 128 74, 126 82 C 125 88, 126 95, 131 96 C 136 97, 139 89, 134 85 C 131 82.5, 121 84.5, 114 82.5 C 109 81, 104 73, 99 58.2 C 94.1 64.7, 94.1 81.1, 88.4 81.1 C 81.8 81.1, 76.1 68, 76.1 54.9 C 76.1 45.1, 72 40.2, 72 30.4 C 72 15.6, 88.4 12.4, 99 19.7 C 109.6 12.4, 126 15.6, 126 30.4 C 126 32.85, 125.74 34.99, 125.36 36.98 Z" stroke="#EEF4F8" stroke-width="7.400000000000001"/>
+    <path d="M125.36 36.98 C 124 42, 129 46, 127 52 C 125 58, 118 60, 119 67 C 120 72, 128 74, 126 82 C 125 88, 126 95, 131 96 C 136 97, 139 89, 134 85 C 131 82.5, 121 84.5, 114 82.5 C 109 81, 104 73, 99 58.2 C 94.1 64.7, 94.1 81.1, 88.4 81.1 C 81.8 81.1, 76.1 68, 76.1 54.9 C 76.1 45.1, 72 40.2, 72 30.4 C 72 15.6, 88.4 12.4, 99 19.7 C 109.6 12.4, 126 15.6, 126 30.4 C 126 32.85, 125.74 34.99, 125.36 36.98 Z" stroke="#1E3A5F" stroke-width="4.5"/>
+  </g>
+  <!-- toothpaste tube docked on the tooth's right shoulder, crimped end at the top right, about 27 degrees -->
+  <g transform="translate(123.6 37.9) rotate(-26.57)" stroke-linejoin="round" stroke-linecap="round">
+    <use href="#tube" fill="none" stroke="#EEF4F8" stroke-width="6.5"/>
+    <use href="#tube" fill="#DCE9F2" stroke="#1E3A5F" stroke-width="3.6"/>
+    <path d="M22 -4 L22 4 M29 -4 L29 4" fill="none" stroke="#1E3A5F" stroke-width="2.4"/>
+  </g>
+</svg>

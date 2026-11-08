@@ -1,0 +1,216 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [header]="(isEdit() ? 'patients.editPatient' : 'patients.newPatient') | transloco"
+  [style]="{ width: 'min(96vw, 760px)' }"
+  [breakpoints]="{ '640px': '96vw' }"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-5" novalidate>
+    <section>
+      <h3 class="mb-2 text-meta uppercase tracking-[0.6px] text-surface-400">
+        {{ 'patientForm.identity' | transloco }}
+      </h3>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'patientForm.firstNameLatin' | transloco }}
+          <input pInputText formControlName="firstNameLatin" dir="ltr" autocomplete="off" />
+        </label>
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'patientForm.lastNameLatin' | transloco }}
+          <input pInputText formControlName="lastNameLatin" dir="ltr" autocomplete="off" />
+        </label>
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'patientForm.firstNameArabic' | transloco }}
+          <input
+            pInputText
+            formControlName="firstNameArabic"
+            dir="rtl"
+            lang="ar"
+            autocomplete="off"
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'patientForm.lastNameArabic' | transloco }}
+          <input
+            pInputText
+            formControlName="lastNameArabic"
+            dir="rtl"
+            lang="ar"
+            autocomplete="off"
+          />
+        </label>
+        @if (form.touched && nameMissing()) {
+          <p class="text-caption text-danger sm:col-span-2">
+            {{ 'patientForm.nameRequired' | transloco }}
+          </p>
+        }
+        <div class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'patients.gender' | transloco }}
+          <p-selectbutton
+            formControlName="gender"
+            [options]="genderOptions"
+            optionValue="value"
+            [allowEmpty]="false"
+          >
+            <ng-template #item let-opt>{{ opt.labelKey | transloco }}</ng-template>
+          </p-selectbutton>
+        </div>
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'patients.birthDate' | transloco }}
+          <p-datepicker
+            formControlName="birthDate"
+            dateFormat="dd/mm/yy"
+            [maxDate]="maxDate"
+            [showIcon]="true"
+            [showButtonBar]="true"
+            appendTo="body"
+            styleClass="w-full"
+          />
+        </label>
+      </div>
+    </section>
+
+    <section>
+      <h3 class="mb-2 text-meta uppercase tracking-[0.6px] text-surface-400">
+        {{ 'patientForm.contact' | transloco }}
+      </h3>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'patientForm.phone' | transloco }}
+          <p-inputgroup dir="ltr">
+            <p-inputgroup-addon>+222</p-inputgroup-addon>
+            <input
+              pInputText
+              formControlName="phone"
+              inputmode="numeric"
+              maxlength="8"
+              autocomplete="off"
+            />
+          </p-inputgroup>
+          @if (form.controls.phone.touched && form.controls.phone.invalid) {
+            <span class="text-danger">{{ 'patientForm.phoneInvalid' | transloco }}</span>
+          } @else {
+            <span class="text-meta text-surface-400">{{
+              'patientForm.phoneHint' | transloco
+            }}</span>
+          }
+        </label>
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'patientForm.phone2' | transloco }}
+          <span class="text-surface-400">({{ 'common.optional' | transloco }})</span>
+          <p-inputgroup dir="ltr">
+            <p-inputgroup-addon>+222</p-inputgroup-addon>
+            <input
+              pInputText
+              formControlName="phone2"
+              inputmode="numeric"
+              maxlength="8"
+              autocomplete="off"
+            />
+          </p-inputgroup>
+        </label>
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'patientForm.address' | transloco }}
+          <input pInputText formControlName="address" autocomplete="off" />
+        </label>
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'patients.primaryDoctor' | transloco }}
+          <p-select
+            formControlName="primaryDoctorId"
+            [options]="staff.activeDoctors()"
+            optionLabel="nameLatin"
+            optionValue="id"
+            [showClear]="true"
+            [placeholder]="'common.none' | transloco"
+            appendTo="body"
+            styleClass="w-full"
+          />
+        </label>
+      </div>
+    </section>
+
+    <section>
+      <div class="mb-2 flex items-center justify-between">
+        <h3 class="text-meta uppercase tracking-[0.6px] text-surface-400">
+          {{ 'patientForm.medical' | transloco }}
+        </h3>
+        <p-button
+          type="button"
+          [label]="'patientForm.addAlert' | transloco"
+          icon="pi pi-plus"
+          size="small"
+          [text]="true"
+          (onClick)="addAlert()"
+        />
+      </div>
+      <div formArrayName="alerts" class="flex flex-col gap-2">
+        @for (group of alerts.controls; track group; let i = $index) {
+          <div
+            [formGroupName]="i"
+            class="grid grid-cols-[1fr_auto] gap-2 sm:grid-cols-[140px_1fr_130px_auto]"
+          >
+            <p-select
+              formControlName="kind"
+              [options]="alertKinds"
+              appendTo="body"
+              styleClass="w-full"
+            >
+              <ng-template #selectedItem let-opt>{{ 'alerts.' + opt | transloco }}</ng-template>
+              <ng-template #item let-opt>{{ 'alerts.' + opt | transloco }}</ng-template>
+            </p-select>
+            <input
+              pInputText
+              formControlName="label"
+              [placeholder]="'patientForm.alertLabel' | transloco"
+              class="col-span-2 sm:col-span-1"
+            />
+            <p-select
+              formControlName="severity"
+              [options]="alertSeverities"
+              appendTo="body"
+              styleClass="w-full"
+            >
+              <ng-template #selectedItem let-opt>{{ 'alerts.' + opt | transloco }}</ng-template>
+              <ng-template #item let-opt>{{ 'alerts.' + opt | transloco }}</ng-template>
+            </p-select>
+            <p-button
+              type="button"
+              icon="pi pi-times"
+              severity="secondary"
+              [text]="true"
+              (onClick)="removeAlert(i)"
+              [ariaLabel]="'common.delete' | transloco"
+            />
+          </div>
+        } @empty {
+          <p class="text-caption text-surface-400">{{ 'patients.noAlerts' | transloco }}</p>
+        }
+      </div>
+    </section>
+
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'patientForm.notes' | transloco }}
+      <textarea pTextarea formControlName="notes" rows="2" class="w-full"></textarea>
+    </label>
+  </form>
+
+  <ng-template #footer>
+    <p-button
+      type="button"
+      [label]="'common.cancel' | transloco"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="visible.set(false)"
+    />
+    <p-button
+      type="button"
+      [label]="'common.save' | transloco"
+      icon="pi pi-check"
+      [loading]="store.saving()"
+      (onClick)="submit()"
+    />
+  </ng-template>
+</p-dialog>

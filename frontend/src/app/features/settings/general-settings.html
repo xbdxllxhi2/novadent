@@ -1,0 +1,86 @@
+<section class="rounded-xl border border-surface-700 bg-surface-900 p-4">
+  <h2 class="mb-3 text-meta uppercase tracking-[0.6px] text-surface-400">
+    {{ 'settings.general' | transloco }}
+  </h2>
+  <div class="grid gap-3 sm:grid-cols-2">
+    <label class="flex flex-col gap-1 text-caption text-surface-300 sm:col-span-2">
+      {{ 'settings.clinicName' | transloco }}
+      <input
+        pInputText
+        [ngModel]="name()"
+        (ngModelChange)="name.set($event)"
+        [disabled]="!canManage()"
+        class="w-full"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'settings.clinicAddress' | transloco }}
+      <input
+        pInputText
+        [ngModel]="address()"
+        (ngModelChange)="address.set($event)"
+        [disabled]="!canManage()"
+        class="w-full"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'settings.clinicPhone' | transloco }}
+      <input
+        pInputText
+        [ngModel]="phone()"
+        (ngModelChange)="phone.set($event)"
+        [disabled]="!canManage()"
+        class="w-full num"
+        dir="ltr"
+      />
+    </label>
+  </div>
+  @if (canManage()) {
+    <div class="mt-3 flex justify-end">
+      <p-button
+        [label]="'common.save' | transloco"
+        icon="pi pi-check"
+        size="small"
+        [loading]="settings.saving()"
+        (onClick)="save()"
+      />
+    </div>
+  }
+</section>
+
+<section class="rounded-xl border border-surface-700 bg-surface-900 p-4">
+  <h2 class="mb-3 text-meta uppercase tracking-[0.6px] text-surface-400">
+    {{ 'settings.appearance' | transloco }}
+  </h2>
+  <div class="grid gap-4 sm:grid-cols-3">
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'settings.language' | transloco }}
+      <p-select
+        [options]="langOptions"
+        optionLabel="label"
+        optionValue="code"
+        [ngModel]="locale.lang()"
+        (onChange)="locale.setLang($event.value)"
+        styleClass="w-full"
+      />
+    </label>
+    <div class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'settings.darkMode' | transloco }}
+      <div class="flex h-[42px] items-center">
+        <p-toggleswitch [ngModel]="theme.isDark()" (ngModelChange)="theme.setDark($event)" />
+      </div>
+    </div>
+    <div class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'settings.textSize' | transloco }}
+      <p-selectbutton
+        [ngModel]="theme.textScale()"
+        (ngModelChange)="theme.setTextScale($event)"
+        [options]="scaleOptions"
+        optionValue="value"
+        [allowEmpty]="false"
+      >
+        <ng-template #item let-o>{{ o.labelKey | transloco }}</ng-template>
+      </p-selectbutton>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,195 @@
+@import 'tailwindcss';
+@import 'primeicons/primeicons.css';
+@plugin 'tailwindcss-primeui';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * tailwindcss-primeui exposes --color-primary and --color-surface-* names for Tailwind *utilities*
+ * (bg-primary, text-surface-400, ...), all aliasing the live PrimeNG theme (novodent-preset.ts).
+ *
+ * CAUTION: those names exist for the utility generator, NOT as custom properties at runtime. A raw
+ * `var(--color-primary)` in a keyframe, a plain CSS rule, an SVG fill or a Tailwind arbitrary value
+ * resolves to nothing, silently. Use PrimeNG's real runtime variables (`--p-primary-color`,
+ * `--p-surface-700`, `--p-sky-500`, ...) anywhere a var() is evaluated by the browser.
+ */
+@theme {
+  --font-sans: 'IBM Plex Sans', 'IBM Plex Sans Arabic', 'Noto Naskh Arabic', system-ui, sans-serif;
+  --font-mono-fin: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --animate-fade-in-up: fade-in-up 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  /* Status aliases: reserved for state, never decoration. Pair with an icon or label. */
+  --color-danger: var(--p-red-500);
+  --color-success: var(--p-green-500);
+  --color-warn: var(--p-orange-500);
+  --color-info: var(--p-sky-500);
+
+  /* App chrome (sidebar rail) is not a PrimeNG concept, so it gets its own token pair,
+     overridden under .dark below. */
+  --color-surface-chrome: #eef2f4;
+
+  /* Type scale: the global font-size knob. Templates say what a piece of text IS (text-ui,
+     text-meta, ...), never how many pixels it gets. Every step is multiplied by --type-scale so a
+     single variable on <html> backs the "text size" setting. */
+  --text-fine: calc(10px * var(--type-scale, 1)); /* mini labels, gutters */
+  --text-meta: calc(12px * var(--type-scale, 1)); /* eyebrows, timestamps, hints */
+  --text-caption: calc(13.5px * var(--type-scale, 1)); /* secondary UI, metadata rows */
+  --text-ui: calc(14.5px * var(--type-scale, 1)); /* primary UI text */
+  --text-ui-lg: calc(15.5px * var(--type-scale, 1)); /* emphasized rows */
+  --text-body: calc(17px * var(--type-scale, 1)); /* long-form text */
+}
+
+.dark {
+  --color-surface-chrome: #0b1012;
+  --color-danger: var(--p-red-400);
+  --color-success: var(--p-green-400);
+  --color-warn: var(--p-orange-400);
+  --color-info: var(--p-sky-400);
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  overscroll-behavior: none;
+  background: var(--p-surface-950);
+  color: var(--p-text-color);
+  font-family: var(--font-sans);
+  font-size: var(--text-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+html[lang='ar'] body {
+  font-family: 'IBM Plex Sans Arabic', 'IBM Plex Sans', 'Noto Naskh Arabic', system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+app-root {
+  display: block;
+  height: 100%;
+}
+
+/* Numbers that must align in columns: amounts, times, file numbers. */
+.num {
+  font-family: var(--font-mono-fin);
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--p-primary-color) 28%, transparent);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--p-surface-700);
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--p-surface-700) transparent;
+  }
+}
+
+/* Directional PrimeIcons mirror with the writing direction: "forward" is right in French and
+   left in Arabic. Handled for the whole family so no call site can forget. */
+[dir='rtl'] .pi-chevron-right,
+[dir='rtl'] .pi-chevron-left,
+[dir='rtl'] .pi-arrow-left,
+[dir='rtl'] .pi-arrow-right,
+[dir='rtl'] .pi-angle-left,
+[dir='rtl'] .pi-angle-right,
+[dir='rtl'] .pi-angle-double-left,
+[dir='rtl'] .pi-angle-double-right {
+  transform: scaleX(-1);
+}
+
+/* Toast accent bar per severity, reading the same tokens the preset defines. */
+.p-toast .p-toast-message {
+  border-inline-start-width: 3px;
+}
+.p-toast .p-toast-message[data-p~='success'] {
+  border-inline-start-color: var(--p-toast-success-color);
+}
+.p-toast .p-toast-message[data-p~='info'] {
+  border-inline-start-color: var(--p-toast-info-color);
+}
+.p-toast .p-toast-message[data-p~='warn'] {
+  border-inline-start-color: var(--p-toast-warn-color);
+}
+.p-toast .p-toast-message[data-p~='error'] {
+  border-inline-start-color: var(--p-toast-error-color);
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+}
+
+/* Scheduler grid: slot lines every 15 minutes (hour lines stronger), closed hours shading, and the
+   hatched blocked bands. --slot-h is set per column by the component. */
+.scheduler-column {
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--slot-h, 28px) * 4 - 1px),
+      color-mix(in srgb, var(--p-surface-700), transparent 0%) calc(var(--slot-h, 28px) * 4 - 1px),
+      color-mix(in srgb, var(--p-surface-700), transparent 0%) calc(var(--slot-h, 28px) * 4)
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--slot-h, 28px) - 1px),
+      color-mix(in srgb, var(--p-surface-700), transparent 55%) calc(var(--slot-h, 28px) - 1px),
+      color-mix(in srgb, var(--p-surface-700), transparent 55%) var(--slot-h, 28px)
+    );
+}
+.scheduler-closed {
+  background: color-mix(in srgb, var(--p-surface-800), transparent 35%);
+}
+.scheduler-blocked {
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--p-surface-700), transparent 40%) 0 6px,
+    transparent 6px 12px
+  );
+  border-block: 1px dashed var(--p-surface-600);
+}

@@ -1,0 +1,95 @@
+<app-page-header
+  [title]="'patients.title' | transloco"
+  [subtitle]="'patients.subtitle' | transloco: { count: store.results().length }"
+>
+  <p-button
+    *appHasPermission="'patient.write'"
+    [label]="'patients.newPatient' | transloco"
+    icon="pi pi-plus"
+    (onClick)="formOpen.set(true)"
+  />
+</app-page-header>
+
+<div class="mb-4 flex flex-wrap items-center gap-3">
+  <p-iconfield class="w-full max-w-md">
+    <p-inputicon class="pi pi-search" />
+    <input
+      pInputText
+      type="search"
+      class="w-full"
+      [ngModel]="store.query()"
+      (ngModelChange)="store.search($event)"
+      [placeholder]="'patients.searchPlaceholder' | transloco"
+      autocomplete="off"
+    />
+  </p-iconfield>
+  <label class="flex items-center gap-2 text-caption text-surface-300">
+    <p-toggleswitch
+      [ngModel]="store.includeArchived()"
+      (ngModelChange)="store.setIncludeArchived($event)"
+    />
+    {{ 'patients.showArchived' | transloco }}
+  </label>
+</div>
+
+@if (store.results().length === 0 && !store.searching()) {
+  <app-empty-state
+    icon="users"
+    [title]="'patients.noResults' | transloco"
+    [description]="'patients.noResultsHint' | transloco"
+  />
+} @else {
+  <div class="overflow-hidden rounded-xl border border-surface-700 bg-surface-900">
+    <p-table
+      [value]="store.results()"
+      [paginator]="store.results().length > 25"
+      [rows]="25"
+      [loading]="store.searching()"
+      [rowHover]="true"
+      dataKey="id"
+      styleClass="text-ui"
+      [tableStyle]="{ 'min-width': '720px' }"
+    >
+      <ng-template #header>
+        <tr>
+          <th class="w-[120px]">{{ 'patients.fileNumber' | transloco }}</th>
+          <th>{{ 'common.name' | transloco }}</th>
+          <th class="w-[160px]">{{ 'patients.phone' | transloco }}</th>
+          <th class="w-[100px]">{{ 'patients.age' | transloco }}</th>
+          <th>{{ 'patients.primaryDoctor' | transloco }}</th>
+          <th>{{ 'patients.alerts' | transloco }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-p>
+        <tr class="cursor-pointer" (click)="open(p)" (keydown.enter)="open(p)" tabindex="0">
+          <td class="num text-caption text-surface-300">{{ p.fileNumber }}</td>
+          <td>
+            <div class="flex items-center gap-2">
+              <app-patient-name [patient]="p" />
+              @if (p.archived) {
+                <app-status-tag tone="neutral">{{
+                  'patients.archived' | transloco
+                }}</app-status-tag>
+              }
+            </div>
+          </td>
+          <td class="num text-caption text-surface-300" dir="ltr">{{ p.phone | phone }}</td>
+          <td class="text-caption text-surface-300">
+            @if (age(p.birthDate); as a) {
+              {{ a }} {{ 'common.years' | transloco }}
+            }
+            <span class="text-surface-400">{{
+              p.gender === 'M' ? ('patients.male' | transloco) : ('patients.female' | transloco)
+            }}</span>
+          </td>
+          <td class="text-caption text-surface-300">
+            {{ staff.doctor(p.primaryDoctorId)?.nameLatin ?? '' }}
+          </td>
+          <td><app-medical-alerts [alerts]="p.alerts" /></td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+}
+
+<app-patient-form-dialog [(visible)]="formOpen" [patient]="null" (saved)="created($event)" />

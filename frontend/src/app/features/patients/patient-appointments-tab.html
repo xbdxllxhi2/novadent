@@ -1,0 +1,41 @@
+@if (!loading() && appointments().length === 0) {
+  <app-empty-state icon="calendar" [title]="'patients.noAppointments' | transloco" />
+} @else {
+  <div class="overflow-hidden rounded-xl border border-surface-700 bg-surface-900">
+    <p-table
+      [value]="appointments()"
+      [loading]="loading()"
+      [paginator]="appointments().length > 20"
+      [rows]="20"
+      styleClass="text-ui"
+      [tableStyle]="{ 'min-width': '640px' }"
+    >
+      <ng-template #header>
+        <tr>
+          <th class="w-[150px]">{{ 'common.date' | transloco }}</th>
+          <th class="w-[120px]">{{ 'common.time' | transloco }}</th>
+          <th>{{ 'scheduler.reason' | transloco }}</th>
+          <th>{{ 'common.doctor' | transloco }}</th>
+          <th class="w-[120px]">{{ 'common.chair' | transloco }}</th>
+          <th class="w-[140px]">{{ 'common.status' | transloco }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-a>
+        <tr>
+          <td class="text-caption text-surface-300">{{ a.start | appDate: 'weekdayShort' }}</td>
+          <td class="num text-caption text-surface-300">
+            {{ a.start | appDate: 'time' }} - {{ a.end | appDate: 'time' }}
+          </td>
+          <td class="text-surface-100">{{ a.reason }}</td>
+          <td class="text-caption text-surface-300">{{ staff.doctor(a.doctorId)?.nameLatin }}</td>
+          <td class="text-caption text-surface-300">{{ staff.chair(a.chairId)?.name }}</td>
+          <td>
+            <app-status-tag [tone]="tone(a.status)">{{
+              'apptStatus.' + a.status | transloco
+            }}</app-status-tag>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+}

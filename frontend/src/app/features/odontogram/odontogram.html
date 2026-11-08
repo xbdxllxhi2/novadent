@@ -1,0 +1,159 @@
+<svg
+  [attr.viewBox]="viewBox"
+  class="odontogram w-full select-none"
+  role="img"
+  [attr.aria-label]="'odontogram.title' | transloco"
+  (click)="clear()"
+>
+  <defs>
+    <pattern
+      id="odo-planned"
+      width="6"
+      height="6"
+      patternUnits="userSpaceOnUse"
+      patternTransform="rotate(45)"
+    >
+      <line x1="0" y1="0" x2="0" y2="6" class="planned-hatch" />
+    </pattern>
+  </defs>
+
+  <!-- Midline and side labels -->
+  <line [attr.x1]="midX" y1="6" [attr.x2]="midX" y2="150" class="midline" />
+  <text x="10" y="80" class="side-label">{{ 'odontogram.patientRight' | transloco }}</text>
+  <text [attr.x]="midX * 2 - 10" y="80" class="side-label" text-anchor="end">
+    {{ 'odontogram.patientLeft' | transloco }}
+  </text>
+
+  @for (t of teeth(); track t.fdi) {
+    <g class="tooth" [class.selected]="t.selected" [class.absent]="t.absent">
+      <text
+        [attr.x]="t.cx"
+        [attr.y]="t.labelY"
+        text-anchor="middle"
+        class="fdi"
+        (click)="onToothClick($event, t.fdi)"
+      >
+        {{ t.fdi }}
+      </text>
+      @for (z of t.zones; track z.surface) {
+        <polygon
+          [attr.points]="z.points"
+          [class]="z.cls"
+          [class.selected]="z.selected"
+          (click)="onZoneClick($event, t.fdi, z.surface)"
+        >
+          <title>{{ t.fdi }} {{ z.label }}</title>
+        </polygon>
+      }
+
+      <!-- Whole-tooth overlays -->
+      @if (t.absent) {
+        <line
+          [attr.x1]="t.x + 6"
+          [attr.y1]="t.y + 6"
+          [attr.x2]="t.x + 30"
+          [attr.y2]="t.y + 30"
+          class="cross"
+        />
+        <line
+          [attr.x1]="t.x + 30"
+          [attr.y1]="t.y + 6"
+          [attr.x2]="t.x + 6"
+          [attr.y2]="t.y + 30"
+          class="cross"
+        />
+      } @else if (t.whole) {
+        @switch (t.whole.condition) {
+          @case ('crown') {
+            <rect
+              [attr.x]="t.x + 2"
+              [attr.y]="t.y + 2"
+              width="32"
+              height="32"
+              rx="4"
+              [class]="'crown ' + t.wholeCls"
+            />
+          }
+          @case ('implant') {
+            <rect
+              [attr.x]="t.x + 14"
+              [attr.y]="t.y + 6"
+              width="8"
+              height="24"
+              rx="2"
+              [class]="'implant ' + t.wholeCls"
+            />
+            <line
+              [attr.x1]="t.x + 10"
+              [attr.y1]="t.y + 12"
+              [attr.x2]="t.x + 26"
+              [attr.y2]="t.y + 12"
+              [class]="'implant-line ' + t.wholeCls"
+            />
+            <line
+              [attr.x1]="t.x + 10"
+              [attr.y1]="t.y + 18"
+              [attr.x2]="t.x + 26"
+              [attr.y2]="t.y + 18"
+              [class]="'implant-line ' + t.wholeCls"
+            />
+            <line
+              [attr.x1]="t.x + 10"
+              [attr.y1]="t.y + 24"
+              [attr.x2]="t.x + 26"
+              [attr.y2]="t.y + 24"
+              [class]="'implant-line ' + t.wholeCls"
+            />
+          }
+          @case ('root-canal') {
+            <line
+              [attr.x1]="t.cx"
+              [attr.y1]="t.y + 4"
+              [attr.x2]="t.cx"
+              [attr.y2]="t.y + 32"
+              [class]="'root ' + t.wholeCls"
+            />
+          }
+          @case ('extraction-planned') {
+            <line
+              [attr.x1]="t.x + 6"
+              [attr.y1]="t.y + 6"
+              [attr.x2]="t.x + 30"
+              [attr.y2]="t.y + 30"
+              class="cross planned"
+            />
+            <line
+              [attr.x1]="t.x + 30"
+              [attr.y1]="t.y + 6"
+              [attr.x2]="t.x + 6"
+              [attr.y2]="t.y + 30"
+              class="cross planned"
+            />
+          }
+          @case ('bridge-pontic') {
+            <rect
+              [attr.x]="t.x + 4"
+              [attr.y]="t.cy - 3"
+              width="28"
+              height="6"
+              rx="2"
+              [class]="'pontic ' + t.wholeCls"
+            />
+          }
+          @default {
+            @if (t.glyph) {
+              <text
+                [attr.x]="t.cx"
+                [attr.y]="t.cy + 4"
+                text-anchor="middle"
+                [class]="'glyph ' + t.wholeCls"
+              >
+                {{ t.glyph }}
+              </text>
+            }
+          }
+        }
+      }
+    </g>
+  }
+</svg>

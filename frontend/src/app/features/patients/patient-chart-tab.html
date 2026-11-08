@@ -1,0 +1,80 @@
+<div class="flex flex-wrap items-center justify-between gap-3">
+  <p-selectbutton
+    [ngModel]="dentition()"
+    (ngModelChange)="dentition.set($event)"
+    [options]="dentitionOptions"
+    optionValue="value"
+    [allowEmpty]="false"
+    size="small"
+  >
+    <ng-template #item let-o>{{ o.labelKey | transloco }}</ng-template>
+  </p-selectbutton>
+  <div class="flex items-center gap-2">
+    @if (selection()) {
+      <span class="text-caption text-surface-300">
+        {{ 'common.tooth' | transloco }}
+        <span class="num font-semibold text-surface-100">{{ selectionLabel() }}</span>
+      </span>
+      <p-button
+        [label]="'common.clearSelection' | transloco"
+        size="small"
+        [text]="true"
+        severity="secondary"
+        (onClick)="selection.set(null)"
+      />
+    }
+    @if (canWrite()) {
+      <p-button
+        [label]="'odontogram.addFinding' | transloco"
+        icon="pi pi-plus"
+        size="small"
+        [outlined]="true"
+        [disabled]="!selection()"
+        (onClick)="open('finding')"
+      />
+    }
+    @if (canPlan()) {
+      <p-button
+        [label]="'odontogram.planProcedure' | transloco"
+        icon="pi pi-list-check"
+        size="small"
+        (onClick)="open('plan')"
+      />
+    }
+  </div>
+</div>
+
+<div class="mt-3 rounded-xl border border-surface-700 bg-surface-900 p-3">
+  @if (store.loading() && store.entries().length === 0) {
+    <app-loading-block [rows]="2" height="120px" />
+  } @else {
+    <app-odontogram
+      [chart]="store.chart()"
+      [dentition]="dentition()"
+      [(selection)]="selection"
+      [readonly]="!canWrite() && !canPlan()"
+    />
+  }
+  <div class="mt-2 border-t border-surface-700 pt-2">
+    <app-odontogram-legend />
+  </div>
+</div>
+
+<section class="mt-4">
+  <h2 class="mb-2 text-meta uppercase tracking-[0.6px] text-surface-400">
+    {{ 'odontogram.history' | transloco }}
+  </h2>
+  <app-chart-history
+    [entries]="store.history()"
+    [focusFdi]="selection()?.fdi ?? null"
+    (voided)="store.void($event)"
+  />
+</section>
+
+<app-procedure-picker-dialog
+  [(visible)]="pickerOpen"
+  [mode]="pickerMode()"
+  [patientId]="patientId()"
+  [target]="pickerTarget()"
+  (done)="onDone()"
+/>

@@ -1,0 +1,56 @@
+<app-page-header
+  [title]="'home.greeting' | transloco: { name: auth.user()?.displayName }"
+  [subtitle]="'home.subtitle' | transloco"
+/>
+
+@if (staleSeed()) {
+  <a routerLink="/settings/demo" class="mb-4 block"
+    ><p-message severity="warn" [text]="'home.staleSeed' | transloco"
+  /></a>
+}
+
+<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  @if (auth.can('appointment.read')) {
+    <app-kpi-tile
+      [label]="'home.kpiToday' | transloco"
+      [value]="'' + todayCount()"
+      icon="calendar"
+    />
+    <app-kpi-tile [label]="'home.kpiInClinic' | transloco" [value]="'' + inClinic()" icon="users" />
+    <app-kpi-tile
+      [label]="'home.kpiDone' | transloco"
+      [value]="'' + doneCount()"
+      icon="check-circle"
+    />
+  }
+  @if (auth.can('invoice.read')) {
+    <app-kpi-tile
+      [label]="'home.kpiOutstanding' | transloco"
+      [value]="billing.outstanding() === null ? '' : (billing.outstanding() | money)"
+      icon="wallet"
+    />
+  }
+</div>
+
+@if (auth.can('task.read')) {
+  <section class="mt-6">
+    <h2 class="mb-3 text-ui-lg font-semibold text-surface-100">
+      {{ 'home.receptionTasks' | transloco }}
+    </h2>
+    <app-reception-tasks />
+  </section>
+}
+
+@if (auth.can('appointment.read')) {
+  <section class="mt-6">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 class="text-ui-lg font-semibold text-surface-100">
+        {{ 'home.todayAgenda' | transloco }}
+      </h2>
+      <a routerLink="/scheduler" class="text-caption font-medium text-primary hover:underline">{{
+        'home.openScheduler' | transloco
+      }}</a>
+    </div>
+    <app-today-agenda />
+  </section>
+}

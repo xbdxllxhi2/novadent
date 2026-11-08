@@ -1,0 +1,215 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [header]="
+    (mode() === 'finding' ? 'odontogram.addFinding' : 'odontogram.planProcedure') | transloco
+  "
+  [style]="{ width: 'min(96vw, 720px)' }"
+>
+  <div class="flex flex-col gap-4">
+    @if (targetLabel()) {
+      <p class="text-caption text-surface-300">
+        {{ 'common.tooth' | transloco }}
+        <span class="num font-semibold text-surface-100">{{ targetLabel() }}</span>
+        @if (!target()?.surfaces?.length) {
+          <span class="text-surface-400">({{ 'odontogram.wholeTooth' | transloco }})</span>
+        }
+      </p>
+    }
+
+    @if (mode() === 'finding') {
+      <div class="grid gap-3 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'odontogram.condition' | transloco }}
+          <p-select
+            [ngModel]="condition()"
+            (ngModelChange)="condition.set($event)"
+            [options]="conditions"
+            appendTo="body"
+            styleClass="w-full"
+          >
+            <ng-template #selectedItem let-c>{{ 'conditions.' + c | transloco }}</ng-template>
+            <ng-template #item let-c>{{ 'conditions.' + c | transloco }}</ng-template>
+          </p-select>
+        </label>
+        <div class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'common.status' | transloco }}
+          <p-selectbutton
+            [ngModel]="findingStatus()"
+            (ngModelChange)="findingStatus.set($event)"
+            [options]="findingStatuses"
+            [allowEmpty]="false"
+            size="small"
+          >
+            <ng-template #item let-s>{{ 'clinicalStatus.' + s | transloco }}</ng-template>
+          </p-selectbutton>
+        </div>
+      </div>
+      <label class="flex flex-col gap-1 text-caption text-surface-300">
+        {{ 'common.notes' | transloco }}
+        <textarea
+          pTextarea
+          [ngModel]="note()"
+          (ngModelChange)="note.set($event)"
+          rows="2"
+          class="w-full"
+        ></textarea>
+      </label>
+    } @else {
+      <p-iconfield>
+        <p-inputicon class="pi pi-search" />
+        <input
+          pInputText
+          type="search"
+          class="w-full"
+          [ngModel]="query()"
+          (ngModelChange)="query.set($event)"
+          [placeholder]="'procedures.searchPlaceholder' | transloco"
+          autocomplete="off"
+        />
+      </p-iconfield>
+      <ul
+        class="max-h-[240px] divide-y divide-surface-700 overflow-y-auto rounded-lg border border-surface-700"
+      >
+        @for (p of filtered(); track p.code) {
+          <li>
+            <button
+              type="button"
+              class="flex w-full items-center gap-3 px-3 py-2 text-start hover:bg-surface-800"
+              [class.bg-surface-800]="procedure()?.code === p.code"
+              (click)="pick(p)"
+            >
+              <span class="num w-[88px] flex-none text-meta text-surface-400">{{ p.code }}</span>
+              <span class="min-w-0 flex-1 truncate text-caption text-surface-100">{{
+                p.name | localized
+              }}</span>
+              <span class="text-meta text-surface-400">{{
+                'procCategory.' + p.category | transloco
+              }}</span>
+              <span class="num w-[96px] flex-none text-end text-caption text-surface-200">{{
+                p.defaultPrice | money
+              }}</span>
+            </button>
+          </li>
+        } @empty {
+          <li class="px-3 py-4 text-center text-caption text-surface-400">
+            {{ 'common.noData' | transloco }}
+          </li>
+        }
+      </ul>
+      @if (submitted() && !procedure()) {
+        <p class="text-caption text-danger">{{ 'procedures.pick' | transloco }}</p>
+      }
+
+      @if (procedure(); as p) {
+        <div class="grid gap-3 sm:grid-cols-3">
+          <label class="flex flex-col gap-1 text-caption text-surface-300">
+            {{ 'common.price' | transloco }}
+            <p-inputnumber
+              [ngModel]="price()"
+              (ngModelChange)="price.set($event ?? 0)"
+              [min]="0"
+              [useGrouping]="true"
+              [suffix]="' ' + ('common.currency' | transloco)"
+              styleClass="w-full"
+              inputStyleClass="w-full num"
+            />
+          </label>
+          <label class="flex flex-col gap-1 text-caption text-surface-300">
+            {{ 'common.doctor' | transloco }}
+            <p-select
+              [ngModel]="doctorId()"
+              (ngModelChange)="doctorId.set($event)"
+              [options]="staff.activeDoctors()"
+              optionLabel="nameLatin"
+              optionValue="id"
+              appendTo="body"
+              styleClass="w-full"
+            />
+          </label>
+          @if (p.appliesTo === 'tooth' || p.appliesTo === 'surface') {
+            <label class="flex flex-col gap-1 text-caption text-surface-300">
+              {{ 'common.tooth' | transloco }}
+              <p-select
+                [ngModel]="toothFdi()"
+                (ngModelChange)="toothFdi.set($event)"
+                [options]="teethOptions"
+                optionLabel="label"
+                optionValue="fdi"
+                [filter]="true"
+                [showClear]="true"
+                appendTo="body"
+                styleClass="w-full num"
+              />
+            </label>
+          }
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-caption text-surface-300">
+            {{ 'plans.targetPlan' | transloco }}
+            <p-select
+              [ngModel]="planChoice()"
+              (ngModelChange)="planChoice.set($event)"
+              [options]="planOptions()"
+              optionValue="value"
+              appendTo="body"
+              styleClass="w-full"
+            >
+              <ng-template #selectedItem let-o>{{
+                o.value === newPlanValue ? ('plans.newPlanOption' | transloco) : o.label
+              }}</ng-template>
+              <ng-template #item let-o>{{
+                o.value === newPlanValue ? ('plans.newPlanOption' | transloco) : o.label
+              }}</ng-template>
+            </p-select>
+          </label>
+          @if (planChoice() === newPlanValue) {
+            <label class="flex flex-col gap-1 text-caption text-surface-300">
+              {{ 'plans.planTitle' | transloco }}
+              <input
+                pInputText
+                [ngModel]="newPlanTitle()"
+                (ngModelChange)="newPlanTitle.set($event)"
+                [placeholder]="'plans.defaultTitle' | transloco"
+                class="w-full"
+              />
+            </label>
+          } @else {
+            <label class="flex flex-col gap-1 text-caption text-surface-300">
+              {{ 'plans.targetPhase' | transloco }}
+              <p-select
+                [ngModel]="phaseId()"
+                (ngModelChange)="phaseId.set($event)"
+                [options]="phases()"
+                optionLabel="title"
+                optionValue="id"
+                appendTo="body"
+                styleClass="w-full"
+              />
+            </label>
+          }
+        </div>
+      }
+    }
+  </div>
+
+  <ng-template #footer>
+    <p-button
+      type="button"
+      [label]="'common.cancel' | transloco"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="visible.set(false)"
+    />
+    <p-button
+      type="button"
+      [label]="'common.save' | transloco"
+      icon="pi pi-check"
+      [loading]="odontogram.saving() || plans.saving()"
+      (onClick)="submit()"
+    />
+  </ng-template>
+</p-dialog>

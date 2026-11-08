@@ -1,0 +1,51 @@
+@if (store.open().length === 0) {
+  <app-empty-state icon="check-square" [title]="'tasks.none' | transloco" />
+} @else {
+  <ul class="divide-y divide-surface-700 rounded-xl border border-surface-700 bg-surface-900">
+    @for (t of store.open(); track t.id) {
+      <li class="flex items-center gap-3 px-4 py-2.5">
+        <app-status-tag [tone]="tone(t.kind)">{{
+          'taskKind.' + t.kind | transloco
+        }}</app-status-tag>
+        <div class="min-w-0 flex-1">
+          <a class="hover:underline" [routerLink]="['/patients', t.patientId]">
+            @if (patients.get(t.patientId); as p) {
+              <app-patient-name [patient]="p" [compact]="true" />
+            }
+          </a>
+          <p class="truncate text-caption text-surface-200" dir="auto">
+            @if (t.kind === 'schedule-followup') {
+              {{
+                'tasks.followupSummary'
+                  | transloco: { minutes: t.durationMinutes, days: t.delayDays }
+              }}
+            }
+            {{ t.details }}
+          </p>
+          <p class="text-meta text-surface-400">
+            {{ t.createdByName }} <span class="mx-1">·</span>
+            {{ t.createdAt | appDate: 'dateTime' }}
+          </p>
+        </div>
+        @if (t.kind === 'schedule-followup' && auth.can('appointment.write')) {
+          <p-button
+            [label]="'tasks.schedule' | transloco"
+            icon="pi pi-calendar-plus"
+            size="small"
+            [outlined]="true"
+            routerLink="/scheduler"
+            [queryParams]="{ patientId: t.patientId }"
+          />
+        }
+        @if (auth.can('task.complete')) {
+          <p-button
+            [label]="'tasks.done' | transloco"
+            icon="pi pi-check"
+            size="small"
+            (onClick)="store.complete(t.id)"
+          />
+        }
+      </li>
+    }
+  </ul>
+}

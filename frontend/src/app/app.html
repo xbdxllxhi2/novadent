@@ -1,0 +1,14 @@
+<!-- `dir` is bound here as well as on <html> so Angular CDK's Directionality (drag and drop) tracks
+     language changes at runtime. -->
+<div class="contents" [dir]="locale.dir()">
+  <router-outlet />
+  <p-toast position="top-center" [breakpoints]="{ '640px': { width: '92vw' } }" />
+  <p-confirmdialog
+    [style]="{ width: 'min(92vw, 420px)' }"
+    [acceptLabel]="'common.confirm' | transloco"
+    [rejectLabel]="'common.cancel' | transloco"
+    acceptButtonStyleClass="p-button-danger"
+    rejectButtonStyleClass="p-button-outlined p-button-secondary"
+    [defaultFocus]="'reject'"
+  />
+</div>

@@ -1,0 +1,84 @@
+<div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+  <h2 class="text-ui-lg font-semibold text-surface-100">{{ 'documents.title' | transloco }}</h2>
+  @if (canWrite()) {
+    <div class="flex items-center gap-2">
+      <p-button
+        [label]="'documents.newCertificate' | transloco"
+        icon="pi pi-file"
+        size="small"
+        [outlined]="true"
+        (onClick)="open('certificate')"
+      />
+      <p-button
+        [label]="'documents.newPrescription' | transloco"
+        icon="pi pi-plus"
+        size="small"
+        (onClick)="open('prescription')"
+      />
+    </div>
+  }
+</div>
+
+@if (!store.loading() && store.documents().length === 0) {
+  <app-empty-state
+    icon="file"
+    [title]="'documents.noDocuments' | transloco"
+    [description]="canWrite() ? ('documents.noDocumentsHint' | transloco) : null"
+  />
+} @else {
+  <ul class="divide-y divide-surface-700 rounded-xl border border-surface-700 bg-surface-900">
+    @for (doc of store.documents(); track doc.id) {
+      <li class="flex items-center gap-3 px-4 py-3">
+        <span
+          class="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-surface-800 text-surface-400"
+        >
+          <i
+            class="pi"
+            [class.pi-file-edit]="doc.kind === 'prescription'"
+            [class.pi-file]="doc.kind === 'certificate'"
+          ></i>
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="flex flex-wrap items-center gap-2 text-caption font-medium text-surface-100">
+            {{
+              (doc.kind === 'prescription'
+                ? 'documents.kindPrescription'
+                : 'documents.kindCertificate'
+              ) | transloco
+            }}
+            @if (doc.certificateType) {
+              <app-status-tag tone="info">{{
+                (doc.certificateType === 'sick-leave'
+                  ? 'documents.sickLeave'
+                  : 'documents.attendance'
+                ) | transloco
+              }}</app-status-tag>
+            }
+            @if (doc.days) {
+              <span class="num text-meta text-surface-400">{{
+                'documents.daysCount' | transloco: { count: doc.days }
+              }}</span>
+            }
+          </p>
+          <p class="truncate text-meta text-surface-400" dir="auto">{{ excerpt(doc.body) }}</p>
+          <p class="text-meta text-surface-400">
+            {{ doc.issuedAt | appDate: 'medium' }} <span class="mx-1">·</span>
+            {{ staff.doctor(doc.doctorId)?.nameLatin }}
+          </p>
+        </div>
+        <p-button
+          [label]="'common.print' | transloco"
+          icon="pi pi-print"
+          size="small"
+          [outlined]="true"
+          severity="secondary"
+          [routerLink]="['/print/document', doc.id]"
+        />
+      </li>
+    }
+  </ul>
+}
+
+@if (patients.current(); as patient) {
+  <app-document-dialog [(visible)]="dialogOpen" [patient]="patient" [kind]="dialogKind()" />
+}

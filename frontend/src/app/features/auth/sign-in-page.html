@@ -1,0 +1,69 @@
+<div class="w-full max-w-2xl animate-fade-in-up">
+  <div class="mb-6 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <span
+        class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-contrast"
+      >
+        <svg viewBox="0 0 64 64" class="h-7 w-7" aria-hidden="true">
+          <path
+            d="M20 44 V22 l24 22 V22"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+      <div>
+        <h1 class="text-[24px] font-semibold leading-tight text-surface-100">Novodent</h1>
+        <p class="text-caption text-surface-400">{{ 'auth.tagline' | transloco }}</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <p-select
+        [options]="langOptions"
+        optionLabel="label"
+        optionValue="code"
+        [ngModel]="locale.lang()"
+        (onChange)="locale.setLang($event.value)"
+        styleClass="w-[128px]"
+      />
+      <app-theme-toggle />
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-surface-700 bg-surface-900 p-5 sm:p-6">
+    <h2 class="text-ui-lg font-semibold text-surface-100">
+      {{ 'auth.chooseDemoUser' | transloco }}
+    </h2>
+    <p class="mt-1 text-caption text-surface-400">{{ 'auth.demoHint' | transloco }}</p>
+
+    <div class="mt-5 grid gap-3 sm:grid-cols-2">
+      @for (user of auth.demoUsers(); track user.id) {
+        <button
+          type="button"
+          class="flex items-center gap-3 rounded-xl border border-surface-700 bg-surface-950 px-4 py-3 text-start transition-colors hover:border-primary hover:bg-surface-800 disabled:opacity-60"
+          (click)="signIn(user)"
+          [disabled]="auth.loading()"
+        >
+          <span
+            class="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-primary/15 text-ui font-semibold text-primary"
+            >{{ initials(user) }}</span
+          >
+          <span class="min-w-0">
+            <span class="block truncate text-ui font-medium text-surface-100">{{
+              user.displayName
+            }}</span>
+            <span class="block truncate text-caption text-surface-400">{{ roleLabel(user) }}</span>
+          </span>
+          <i class="pi pi-arrow-right ms-auto text-surface-400"></i>
+        </button>
+      } @empty {
+        <p class="text-caption text-surface-400 sm:col-span-2">
+          {{ 'common.loading' | transloco }}
+        </p>
+      }
+    </div>
+  </div>
+</div>

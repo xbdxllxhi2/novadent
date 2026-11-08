@@ -1,0 +1,10 @@
+<button
+  type="button"
+  class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-surface-400 transition-colors hover:bg-surface-800 hover:text-surface-100"
+  (click)="theme.toggle()"
+  [pTooltip]="(theme.isDark() ? 'theme.switchToLight' : 'theme.switchToDark') | transloco"
+  tooltipPosition="bottom"
+  [attr.aria-label]="(theme.isDark() ? 'theme.switchToLight' : 'theme.switchToDark') | transloco"
+>
+  <i class="pi text-ui-lg" [class.pi-sun]="theme.isDark()" [class.pi-moon]="!theme.isDark()"></i>
+</button>

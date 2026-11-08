@@ -1,0 +1,44 @@
+@if (scheduling.loading() && scheduling.appointments().length === 0) {
+  <app-loading-block [rows]="5" />
+} @else if (groups().length === 0) {
+  <app-empty-state icon="calendar" [title]="'home.noAppointmentsToday' | transloco" />
+} @else {
+  <div class="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+    @for (group of groups(); track group.doctorId) {
+      <section class="rounded-xl border border-surface-700 bg-surface-900">
+        <header class="flex items-center gap-2 border-b border-surface-700 px-4 py-2.5">
+          <span
+            class="h-2.5 w-2.5 rounded-full"
+            [style.background]="staff.doctor(group.doctorId)?.color"
+          ></span>
+          <span class="text-caption font-semibold text-surface-100">{{
+            staff.doctor(group.doctorId)?.nameLatin
+          }}</span>
+          <span class="ms-auto num text-meta text-surface-400">{{
+            group.appointments.length
+          }}</span>
+        </header>
+        <ul class="divide-y divide-surface-700">
+          @for (a of group.appointments; track a.id) {
+            <li class="flex items-center gap-3 px-4 py-2">
+              <span class="num w-[44px] flex-none text-caption text-surface-300">{{
+                a.start | appDate: 'time'
+              }}</span>
+              <a class="min-w-0 flex-1 hover:underline" [routerLink]="['/patients', a.patientId]">
+                @if (patients.get(a.patientId); as p) {
+                  <app-patient-name [patient]="p" [compact]="true" />
+                } @else {
+                  <span class="text-caption text-surface-400">...</span>
+                }
+                <span class="block truncate text-meta text-surface-400">{{ a.reason }}</span>
+              </a>
+              <app-status-tag [tone]="tone(a.status)">{{
+                'apptStatus.' + a.status | transloco
+              }}</app-status-tag>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </div>
+}

@@ -1,0 +1,98 @@
+<app-page-header
+  [title]="'reports.production' | transloco"
+  [subtitle]="'reports.productionSubtitle' | transloco"
+>
+  <p-button
+    *appHasPermission="'report.export'"
+    [label]="'reports.exportCsv' | transloco"
+    icon="pi pi-download"
+    [outlined]="true"
+    severity="secondary"
+    size="small"
+    [disabled]="store.report().length === 0"
+    (onClick)="exportCsv()"
+  />
+</app-page-header>
+
+<div class="mb-4 flex flex-wrap items-center gap-3">
+  <p-selectbutton
+    [ngModel]="preset()"
+    (ngModelChange)="setPreset($event)"
+    [options]="presets"
+    optionValue="value"
+    [allowEmpty]="false"
+    size="small"
+  >
+    <ng-template #item let-o>{{ o.labelKey | transloco }}</ng-template>
+  </p-selectbutton>
+  @if (preset() === 'custom') {
+    <p-datepicker
+      [ngModel]="custom()"
+      (ngModelChange)="setCustom($event)"
+      selectionMode="range"
+      dateFormat="dd/mm/yy"
+      [showIcon]="true"
+      [readonlyInput]="true"
+      appendTo="body"
+      styleClass="w-[240px]"
+    />
+  }
+  <span class="text-caption text-surface-400"
+    >{{ range().from | appDate: 'medium' }} - {{ range().to | appDate: 'medium' }}</span
+  >
+</div>
+
+@if (!store.reportLoading() && store.report().length === 0) {
+  <app-empty-state icon="chart-bar" [title]="'reports.noData' | transloco" />
+} @else {
+  <div class="overflow-hidden rounded-xl border border-surface-700 bg-surface-900">
+    <p-table
+      [value]="store.report()"
+      [loading]="store.reportLoading()"
+      styleClass="text-ui"
+      [tableStyle]="{ 'min-width': '640px' }"
+    >
+      <ng-template #header>
+        <tr>
+          <th>{{ 'common.doctor' | transloco }}</th>
+          <th class="w-[120px] text-end">{{ 'reports.invoiceCount' | transloco }}</th>
+          <th class="w-[160px] text-end">{{ 'reports.invoiced' | transloco }}</th>
+          <th class="w-[160px] text-end">{{ 'reports.collected' | transloco }}</th>
+          <th class="w-[140px] text-end">{{ 'reports.collectionRate' | transloco }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-row>
+        <tr>
+          <td>
+            <span class="inline-flex items-center gap-2 text-surface-100">
+              <span
+                class="h-2.5 w-2.5 rounded-full"
+                [style.background]="staff.doctor(row.doctorId)?.color"
+              ></span>
+              {{ staff.doctor(row.doctorId)?.nameLatin ?? row.doctorId }}
+            </span>
+          </td>
+          <td class="num text-end text-caption text-surface-300">{{ row.invoiceCount }}</td>
+          <td class="num text-end text-caption text-surface-100">{{ row.invoiced | money }}</td>
+          <td class="num text-end text-caption text-surface-100">{{ row.collected | money }}</td>
+          <td class="num text-end text-caption text-surface-300">
+            {{ rate(row.invoiced, row.collected) }}
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #footer>
+        <tr>
+          <td class="font-semibold text-surface-100">{{ 'common.total' | transloco }}</td>
+          <td class="num text-end font-semibold text-surface-100">{{ totals().invoiceCount }}</td>
+          <td class="num text-end font-semibold text-surface-100">
+            {{ totals().invoiced | money }}
+          </td>
+          <td class="num text-end font-semibold text-surface-100">
+            {{ totals().collected | money }}
+          </td>
+          <td class="num text-end font-semibold text-surface-100">{{ totals().rate }} %</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+}

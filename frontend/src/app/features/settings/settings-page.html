@@ -1,0 +1,22 @@
+<app-page-header
+  [title]="'settings.title' | transloco"
+  [subtitle]="readOnly() ? ('settings.readOnly' | transloco) : null"
+/>
+
+<div class="grid gap-4 lg:grid-cols-[220px_1fr]">
+  <nav class="flex flex-row gap-1 overflow-x-auto lg:flex-col" aria-label="Settings">
+    @for (link of links(); track link.path) {
+      <a
+        [routerLink]="link.path"
+        routerLinkActive="bg-surface-800 text-primary"
+        class="flex items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2 text-caption text-surface-300 hover:bg-surface-800 hover:text-surface-100"
+      >
+        <i class="pi" [class]="'pi ' + link.icon"></i>
+        {{ link.labelKey | transloco }}
+      </a>
+    }
+  </nav>
+  <div class="min-w-0">
+    <router-outlet />
+  </div>
+</div>

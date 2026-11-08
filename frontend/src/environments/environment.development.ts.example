@@ -1,0 +1,12 @@
+import { Environment } from './environment.model';
+
+// Copy this file to `environment.development.ts` (gitignored). `npm start` uses it through the
+// `fileReplacements` entry in angular.json. 'mock' runs the whole UI on in-browser adapters.
+export const environment: Environment = {
+  backend: 'mock',
+  apiBaseUrl: 'http://localhost:8080',
+  keycloak: {
+    issuer: 'http://localhost:8081/realms/novodent',
+    clientId: 'novodent-frontend',
+  },
+};

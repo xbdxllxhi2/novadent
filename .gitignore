@@ -1,0 +1,12 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Build output
+dist/
+.angular/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+*.log

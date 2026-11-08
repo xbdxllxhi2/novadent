@@ -1,0 +1,195 @@
+@if (canWrite()) {
+  <div
+    class="mb-4 rounded-xl border-2 border-dashed p-4 transition-colors"
+    [class.border-primary]="dragging()"
+    [class.bg-primary/5]="dragging()"
+    [class.border-surface-700]="!dragging()"
+    (dragover)="onDragOver($event)"
+    (dragleave)="dragging.set(false)"
+    (drop)="onDrop($event)"
+  >
+    <div class="flex flex-wrap items-end gap-3">
+      <div class="flex flex-col gap-1 text-caption text-surface-300">
+        {{ 'attachments.kind' | transloco }}
+        <p-selectbutton
+          [ngModel]="kind()"
+          (ngModelChange)="kind.set($event)"
+          [options]="kinds"
+          [allowEmpty]="false"
+          size="small"
+        >
+          <ng-template #item let-k>{{ 'attachmentKind.' + k | transloco }}</ng-template>
+        </p-selectbutton>
+      </div>
+      <label class="flex flex-col gap-1 text-caption text-surface-300">
+        {{ 'common.tooth' | transloco }}
+        <p-select
+          [ngModel]="toothFdi()"
+          (ngModelChange)="toothFdi.set($event)"
+          [options]="teethOptions"
+          optionLabel="label"
+          optionValue="fdi"
+          [showClear]="true"
+          [filter]="true"
+          [placeholder]="'common.optional' | transloco"
+          appendTo="body"
+          styleClass="w-[120px] num"
+          size="small"
+        />
+      </label>
+      <label class="flex min-w-[200px] flex-1 flex-col gap-1 text-caption text-surface-300">
+        {{ 'attachments.note' | transloco }}
+        <input
+          pInputText
+          [ngModel]="note()"
+          (ngModelChange)="note.set($event)"
+          class="w-full"
+          [placeholder]="'common.optional' | transloco"
+        />
+      </label>
+      <input
+        #fileInput
+        type="file"
+        class="hidden"
+        multiple
+        [accept]="accept"
+        (change)="onFiles(fileInput.files); fileInput.value = ''"
+      />
+      <p-button
+        [label]="'attachments.add' | transloco"
+        icon="pi pi-upload"
+        size="small"
+        [loading]="store.uploading() > 0"
+        (onClick)="fileInput.click()"
+      />
+    </div>
+    <p class="mt-2 text-meta text-surface-400">{{ 'attachments.dropHint' | transloco }}</p>
+  </div>
+}
+
+<div class="mb-3 flex items-center gap-2">
+  <p-selectbutton
+    [ngModel]="filter()"
+    (ngModelChange)="filter.set($event)"
+    [options]="filterOptions()"
+    [allowEmpty]="false"
+    size="small"
+  >
+    <ng-template #item let-k>{{
+      (k === 'all' ? 'common.all' : 'attachmentKind.' + k) | transloco
+    }}</ng-template>
+  </p-selectbutton>
+  <span class="ms-auto text-meta text-surface-400">{{
+    'attachments.count' | transloco: { count: store.attachments().length }
+  }}</span>
+</div>
+
+@if (!store.loading() && visibleAttachments().length === 0) {
+  <app-empty-state
+    icon="images"
+    [title]="'attachments.none' | transloco"
+    [description]="canWrite() ? ('attachments.noneHint' | transloco) : null"
+  />
+} @else {
+  <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    @for (a of visibleAttachments(); track a.id) {
+      <button
+        type="button"
+        class="group overflow-hidden rounded-xl border border-surface-700 bg-surface-900 text-start transition-colors hover:border-primary"
+        (click)="open(a)"
+      >
+        <div class="flex aspect-[4/3] items-center justify-center bg-surface-800">
+          @if (isImage(a) && url(a)) {
+            <img [src]="url(a)" [alt]="a.fileName" class="h-full w-full object-cover" />
+          } @else {
+            <i
+              class="pi text-[32px] text-surface-400"
+              [class.pi-file-pdf]="isPdf(a)"
+              [class.pi-image]="isImage(a)"
+              [class.pi-file]="!isPdf(a) && !isImage(a)"
+            ></i>
+          }
+        </div>
+        <div class="flex flex-col gap-1 px-3 py-2">
+          <div class="flex items-center gap-2">
+            <app-status-tag
+              [tone]="a.kind === 'xray' ? 'info' : a.kind === 'consent' ? 'warn' : 'neutral'"
+              >{{ 'attachmentKind.' + a.kind | transloco }}</app-status-tag
+            >
+            @if (a.toothFdi) {
+              <span class="num text-meta text-surface-400">{{ a.toothFdi }}</span>
+            }
+          </div>
+          <p class="truncate text-caption text-surface-100" [title]="a.fileName">
+            {{ a.note || a.fileName }}
+          </p>
+          <p class="text-meta text-surface-400">
+            {{ a.createdAt | appDate: 'short' }} <span class="mx-1">·</span>
+            {{ formatSize(a.size) }}
+          </p>
+        </div>
+      </button>
+    }
+  </div>
+}
+
+<p-dialog
+  [visible]="viewing() !== null"
+  (visibleChange)="viewing.set(null)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [header]="viewing()?.fileName ?? ''"
+  [style]="{ width: 'min(96vw, 960px)' }"
+  [maximizable]="true"
+>
+  @if (viewing(); as a) {
+    <div class="flex min-h-[320px] items-center justify-center rounded-lg bg-surface-950">
+      @if (url(a); as u) {
+        @if (isImage(a)) {
+          <img [src]="u" [alt]="a.fileName" class="max-h-[70vh] max-w-full object-contain" />
+        } @else if (isPdf(a)) {
+          <iframe [src]="u" class="h-[70vh] w-full rounded-lg" [title]="a.fileName"></iframe>
+        } @else {
+          <p class="text-caption text-surface-400">{{ 'attachments.noPreview' | transloco }}</p>
+        }
+      } @else {
+        <p class="text-caption text-surface-400">{{ 'common.loading' | transloco }}</p>
+      }
+    </div>
+    <p class="mt-2 text-caption text-surface-300">
+      {{ 'attachmentKind.' + a.kind | transloco }}
+      @if (a.toothFdi) {
+        <span class="num"> · {{ 'common.tooth' | transloco }} {{ a.toothFdi }}</span>
+      }
+      @if (a.note) {
+        <span> · {{ a.note }}</span>
+      }
+      <span class="text-surface-400">
+        · {{ a.createdAt | appDate: 'dateTime' }} · {{ formatSize(a.size) }}</span
+      >
+    </p>
+  }
+  <ng-template #footer>
+    @if (viewing(); as a) {
+      @if (canWrite()) {
+        <p-button
+          [label]="'common.delete' | transloco"
+          icon="pi pi-trash"
+          severity="danger"
+          [text]="true"
+          (onClick)="askDelete(a)"
+        />
+      }
+      @if (url(a); as u) {
+        <a
+          [href]="u"
+          [download]="a.fileName"
+          class="p-button p-button-outlined p-button-secondary p-button-sm no-underline"
+          ><i class="pi pi-download me-2"></i>{{ 'attachments.download' | transloco }}</a
+        >
+      }
+    }
+    <p-button [label]="'common.close' | transloco" (onClick)="viewing.set(null)" />
+  </ng-template>
+</p-dialog>

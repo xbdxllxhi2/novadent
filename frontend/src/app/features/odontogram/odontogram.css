@@ -1,0 +1,141 @@
+/* Clinical colours by status; fills read PrimeNG runtime tokens (Tailwind names are not vars). */
+.odontogram {
+  max-height: 320px;
+  font-family: var(--font-mono-fin, monospace);
+}
+.midline {
+  stroke: var(--p-surface-600);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.side-label {
+  font-size: 9px;
+  fill: var(--p-surface-500);
+  font-family: var(--font-sans, sans-serif);
+}
+.fdi {
+  font-size: 10px;
+  fill: var(--p-surface-400);
+  cursor: pointer;
+}
+.tooth.selected .fdi {
+  fill: var(--p-primary-color);
+  font-weight: 700;
+}
+.zone {
+  fill: var(--p-surface-900);
+  stroke: var(--p-surface-600);
+  stroke-width: 1;
+  cursor: pointer;
+  transition: fill 120ms;
+}
+.zone:hover {
+  fill: var(--p-surface-800);
+}
+.zone.status-existing {
+  fill: color-mix(in srgb, var(--p-sky-500) 55%, var(--p-surface-900));
+}
+.zone.status-existing.caries,
+.zone.status-existing.fracture {
+  fill: color-mix(in srgb, var(--p-red-500) 65%, var(--p-surface-900));
+}
+.zone.status-planned {
+  fill: url(#odo-planned);
+  stroke: var(--p-red-500);
+  stroke-dasharray: 2 2;
+}
+.planned-hatch {
+  stroke: var(--p-red-500);
+  stroke-width: 2;
+}
+.zone.status-in-progress {
+  fill: color-mix(in srgb, var(--p-orange-500) 70%, var(--p-surface-900));
+}
+.zone.status-completed {
+  fill: color-mix(in srgb, var(--p-primary-color) 75%, var(--p-surface-900));
+}
+.zone.selected {
+  stroke: var(--p-primary-color);
+  stroke-width: 2.5;
+  stroke-dasharray: none;
+}
+.zone.absent {
+  fill: transparent;
+  stroke: var(--p-surface-700);
+}
+.tooth.absent .fdi {
+  fill: var(--p-surface-600);
+}
+.cross {
+  stroke: var(--p-surface-500);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+.cross.planned {
+  stroke: var(--p-red-500);
+  stroke-dasharray: 4 3;
+}
+.crown {
+  fill: none;
+  stroke: var(--p-sky-500);
+  stroke-width: 3;
+  pointer-events: none;
+}
+.crown.status-planned {
+  stroke: var(--p-red-500);
+  stroke-dasharray: 4 3;
+}
+.crown.status-completed {
+  stroke: var(--p-primary-color);
+}
+.implant {
+  fill: var(--p-sky-500);
+  pointer-events: none;
+}
+.implant.status-planned {
+  fill: var(--p-red-500);
+}
+.implant.status-completed {
+  fill: var(--p-primary-color);
+}
+.implant-line {
+  stroke: var(--p-surface-900);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+.root {
+  stroke: var(--p-sky-600);
+  stroke-width: 3;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+.root.status-planned {
+  stroke: var(--p-red-500);
+  stroke-dasharray: 3 3;
+}
+.root.status-completed {
+  stroke: var(--p-primary-color);
+}
+.pontic {
+  fill: var(--p-sky-500);
+  pointer-events: none;
+}
+.pontic.status-planned {
+  fill: var(--p-red-500);
+}
+.pontic.status-completed {
+  fill: var(--p-primary-color);
+}
+.glyph {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--p-sky-600);
+  pointer-events: none;
+}
+.glyph.status-planned {
+  fill: var(--p-red-500);
+}
+.glyph.status-completed {
+  fill: var(--p-primary-color);
+}

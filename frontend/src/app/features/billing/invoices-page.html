@@ -1,0 +1,89 @@
+<app-page-header [title]="'billing.title' | transloco" />
+
+<div class="mb-4 flex flex-wrap items-center gap-3">
+  <p-selectbutton
+    [ngModel]="status()"
+    (ngModelChange)="setStatus($event)"
+    [options]="statusOptions"
+    optionValue="value"
+    [allowEmpty]="false"
+    size="small"
+  >
+    <ng-template #item let-o>{{ o.labelKey | transloco }}</ng-template>
+  </p-selectbutton>
+  <p-datepicker
+    [ngModel]="range()"
+    (ngModelChange)="setRange($event)"
+    selectionMode="range"
+    dateFormat="dd/mm/yy"
+    [showIcon]="true"
+    [showButtonBar]="true"
+    [placeholder]="'billing.filterPeriod' | transloco"
+    appendTo="body"
+    styleClass="w-[240px]"
+    [readonlyInput]="true"
+  />
+  <div class="ms-auto flex items-center gap-4 text-caption text-surface-400">
+    <span
+      >{{ 'billing.total' | transloco }}
+      <span class="num font-semibold text-surface-100">{{ totals().total | money }}</span></span
+    >
+    <span
+      >{{ 'billing.balance' | transloco }}
+      <span class="num font-semibold text-surface-100">{{ totals().balance | money }}</span></span
+    >
+  </div>
+</div>
+
+@if (!store.loading() && store.invoices().length === 0) {
+  <app-empty-state icon="receipt" [title]="'billing.noInvoices' | transloco" />
+} @else {
+  <div class="overflow-hidden rounded-xl border border-surface-700 bg-surface-900">
+    <p-table
+      [value]="store.invoices()"
+      [loading]="store.loading()"
+      [paginator]="store.invoices().length > 25"
+      [rows]="25"
+      [rowHover]="true"
+      styleClass="text-ui"
+      [tableStyle]="{ 'min-width': '760px' }"
+    >
+      <ng-template #header>
+        <tr>
+          <th class="w-[150px]">{{ 'billing.number' | transloco }}</th>
+          <th class="w-[120px]">{{ 'billing.issuedAt' | transloco }}</th>
+          <th>{{ 'common.patient' | transloco }}</th>
+          <th class="w-[130px] text-end">{{ 'billing.total' | transloco }}</th>
+          <th class="w-[130px] text-end">{{ 'billing.paid' | transloco }}</th>
+          <th class="w-[130px] text-end">{{ 'billing.balance' | transloco }}</th>
+          <th class="w-[150px]">{{ 'common.status' | transloco }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-inv>
+        <tr class="cursor-pointer" (click)="open(inv)" tabindex="0" (keydown.enter)="open(inv)">
+          <td class="num text-caption text-surface-100">{{ inv.number }}</td>
+          <td class="text-caption text-surface-300">{{ inv.issuedAt | appDate: 'short' }}</td>
+          <td>
+            @if (patients.get(inv.patientId); as p) {
+              <app-patient-name [patient]="p" [compact]="true" />
+            }
+          </td>
+          <td class="num text-end text-caption text-surface-100">{{ inv.total | money }}</td>
+          <td class="num text-end text-caption text-surface-300">{{ inv.paid | money }}</td>
+          <td
+            class="num text-end text-caption"
+            [class.text-warn]="balance(inv) > 0"
+            [class.text-surface-300]="balance(inv) === 0"
+          >
+            {{ balance(inv) | money }}
+          </td>
+          <td>
+            <app-status-tag [tone]="tone(inv.status)">{{
+              'invoiceStatus.' + inv.status | transloco
+            }}</app-status-tag>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+}

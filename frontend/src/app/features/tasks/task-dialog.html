@@ -1,0 +1,90 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [header]="'tasks.newRequest' | transloco"
+  [style]="{ width: 'min(96vw, 560px)' }"
+>
+  <div class="flex flex-col gap-4">
+    <p class="text-caption text-surface-300"><app-patient-name [patient]="patient()" /></p>
+
+    <div class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'tasks.kind' | transloco }}
+      <p-selectbutton
+        [ngModel]="kind()"
+        (ngModelChange)="kind.set($event)"
+        [options]="kinds"
+        [allowEmpty]="false"
+        size="small"
+      >
+        <ng-template #item let-k>{{ 'taskKind.' + k | transloco }}</ng-template>
+      </p-selectbutton>
+    </div>
+
+    @if (kind() === 'schedule-followup') {
+      <div class="grid gap-3 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'tasks.duration' | transloco }}
+          <p-select
+            [ngModel]="durationMinutes()"
+            (ngModelChange)="durationMinutes.set($event)"
+            [options]="durations"
+            appendTo="body"
+            styleClass="w-full"
+          >
+            <ng-template #selectedItem let-d>{{
+              'scheduler.minutes' | transloco: { count: d }
+            }}</ng-template>
+            <ng-template #item let-d>{{
+              'scheduler.minutes' | transloco: { count: d }
+            }}</ng-template>
+          </p-select>
+        </label>
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'tasks.delayDays' | transloco }}
+          <p-inputnumber
+            [ngModel]="delayDays()"
+            (ngModelChange)="delayDays.set($event ?? 7)"
+            [min]="1"
+            [max]="365"
+            [showButtons]="true"
+            styleClass="w-full"
+          />
+        </label>
+      </div>
+    }
+
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'tasks.details' | transloco }}
+      <textarea
+        pTextarea
+        [ngModel]="details()"
+        (ngModelChange)="details.set($event)"
+        rows="3"
+        class="w-full"
+        [placeholder]="'tasks.detailsPlaceholder' | transloco"
+        [invalid]="submitted() && !valid()"
+        dir="auto"
+      ></textarea>
+    </label>
+  </div>
+
+  <ng-template #footer>
+    <p-button
+      type="button"
+      [label]="'common.cancel' | transloco"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="visible.set(false)"
+    />
+    <p-button
+      type="button"
+      [label]="'tasks.send' | transloco"
+      icon="pi pi-send"
+      [loading]="store.saving()"
+      (onClick)="submit()"
+    />
+  </ng-template>
+</p-dialog>

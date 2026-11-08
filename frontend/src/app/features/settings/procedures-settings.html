@@ -1,0 +1,195 @@
+<div class="mb-3 flex flex-wrap items-center gap-3">
+  <p-iconfield class="w-full max-w-sm">
+    <p-inputicon class="pi pi-search" />
+    <input
+      pInputText
+      type="search"
+      class="w-full"
+      [ngModel]="query()"
+      (ngModelChange)="query.set($event)"
+      [placeholder]="'procedures.searchPlaceholder' | transloco"
+      autocomplete="off"
+    />
+  </p-iconfield>
+  @if (canManage()) {
+    <p-button
+      [label]="'procedures.newProcedure' | transloco"
+      icon="pi pi-plus"
+      size="small"
+      styleClass="ms-auto"
+      (onClick)="edit()"
+    />
+  }
+</div>
+
+<div class="overflow-hidden rounded-xl border border-surface-700 bg-surface-900">
+  <p-table
+    [value]="filtered()"
+    [paginator]="filtered().length > 30"
+    [rows]="30"
+    styleClass="text-ui"
+    [tableStyle]="{ 'min-width': '720px' }"
+  >
+    <ng-template #header>
+      <tr>
+        <th class="w-[110px]">{{ 'procedures.code' | transloco }}</th>
+        <th>{{ 'common.name' | transloco }}</th>
+        <th class="w-[150px]">{{ 'procedures.category' | transloco }}</th>
+        <th class="w-[120px] text-end">{{ 'common.price' | transloco }}</th>
+        <th class="w-[90px] text-end">{{ 'common.duration' | transloco }}</th>
+        <th class="w-[100px]">{{ 'procedures.appliesTo' | transloco }}</th>
+        <th class="w-[90px]">{{ 'common.status' | transloco }}</th>
+        <th class="w-[60px]"></th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-p>
+      <tr>
+        <td class="num text-caption text-surface-300">{{ p.code }}</td>
+        <td class="text-surface-100">{{ p.name | localized }}</td>
+        <td class="text-caption text-surface-300">
+          {{ 'procCategory.' + p.category | transloco }}
+        </td>
+        <td class="num text-end text-caption text-surface-100">{{ p.defaultPrice | money }}</td>
+        <td class="num text-end text-caption text-surface-300">
+          {{ p.durationMinutes }} {{ 'common.minutesShort' | transloco }}
+        </td>
+        <td class="text-caption text-surface-300">{{ targetKey(p.appliesTo) | transloco }}</td>
+        <td>
+          <app-status-tag [tone]="p.active ? 'success' : 'neutral'">{{
+            (p.active ? 'common.active' : 'common.inactive') | transloco
+          }}</app-status-tag>
+        </td>
+        <td class="text-end">
+          @if (canManage()) {
+            <p-button
+              icon="pi pi-pencil"
+              size="small"
+              [text]="true"
+              severity="secondary"
+              (onClick)="edit(p)"
+              [ariaLabel]="'common.edit' | transloco"
+            />
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  [visible]="open()"
+  (visibleChange)="open.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [header]="(isNew() ? 'procedures.newProcedure' : 'procedures.editProcedure') | transloco"
+  [style]="{ width: 'min(96vw, 640px)' }"
+>
+  <div class="grid gap-3 sm:grid-cols-2">
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'procedures.code' | transloco }}
+      <input
+        pInputText
+        [ngModel]="draft().code"
+        (ngModelChange)="patch({ code: $event })"
+        [disabled]="!isNew()"
+        class="w-full num"
+        dir="ltr"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'procedures.category' | transloco }}
+      <p-select
+        [ngModel]="draft().category"
+        (ngModelChange)="patch({ category: $event })"
+        [options]="categories"
+        appendTo="body"
+        styleClass="w-full"
+      >
+        <ng-template #selectedItem let-c>{{ 'procCategory.' + c | transloco }}</ng-template>
+        <ng-template #item let-c>{{ 'procCategory.' + c | transloco }}</ng-template>
+      </p-select>
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300 sm:col-span-2">
+      {{ 'procedures.nameFr' | transloco }}
+      <input
+        pInputText
+        [ngModel]="draft().name.fr"
+        (ngModelChange)="patchName('fr', $event)"
+        class="w-full"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'procedures.nameAr' | transloco }}
+      <input
+        pInputText
+        [ngModel]="draft().name.ar"
+        (ngModelChange)="patchName('ar', $event)"
+        class="w-full"
+        dir="rtl"
+        lang="ar"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'procedures.nameEn' | transloco }}
+      <input
+        pInputText
+        [ngModel]="draft().name.en"
+        (ngModelChange)="patchName('en', $event)"
+        class="w-full"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'procedures.defaultPrice' | transloco }}
+      <p-inputnumber
+        [ngModel]="draft().defaultPrice"
+        (ngModelChange)="patch({ defaultPrice: $event ?? 0 })"
+        [min]="0"
+        [useGrouping]="true"
+        styleClass="w-full"
+        inputStyleClass="w-full num"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'common.duration' | transloco }} ({{ 'common.minutesShort' | transloco }})
+      <p-inputnumber
+        [ngModel]="draft().durationMinutes"
+        (ngModelChange)="patch({ durationMinutes: $event ?? 15 })"
+        [min]="5"
+        [step]="5"
+        [showButtons]="true"
+        styleClass="w-full"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'procedures.appliesTo' | transloco }}
+      <p-select
+        [ngModel]="draft().appliesTo"
+        (ngModelChange)="patch({ appliesTo: $event })"
+        [options]="targets"
+        appendTo="body"
+        styleClass="w-full"
+      >
+        <ng-template #selectedItem let-t>{{ targetKey(t) | transloco }}</ng-template>
+        <ng-template #item let-t>{{ targetKey(t) | transloco }}</ng-template>
+      </p-select>
+    </label>
+    <label class="flex items-center gap-2 text-caption text-surface-300">
+      <p-toggleswitch [ngModel]="draft().active" (ngModelChange)="patch({ active: $event })" />
+      {{ 'common.active' | transloco }}
+    </label>
+  </div>
+  <ng-template #footer>
+    <p-button
+      [label]="'common.cancel' | transloco"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="open.set(false)"
+    />
+    <p-button
+      [label]="'common.save' | transloco"
+      icon="pi pi-check"
+      [loading]="store.saving()"
+      (onClick)="save()"
+    />
+  </ng-template>
+</p-dialog>

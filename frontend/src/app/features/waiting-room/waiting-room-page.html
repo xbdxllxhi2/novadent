@@ -1,0 +1,182 @@
+<app-page-header
+  [title]="'waitingRoom.title' | transloco"
+  [subtitle]="'waitingRoom.subtitle' | transloco: { count: totalWaiting() }"
+>
+  @if (isDoctor()) {
+    <label class="flex items-center gap-2 text-caption text-surface-300">
+      <p-toggleswitch [ngModel]="onlyMine()" (ngModelChange)="onlyMine.set($event)" />
+      {{ 'waitingRoom.onlyMine' | transloco }}
+    </label>
+  }
+</app-page-header>
+
+<!-- One row of a queue: time, patient, alerts, last message, actions -->
+<ng-template #row let-a="a" let-index="index" let-stage="stage">
+  <div
+    class="flex items-center gap-3 py-1.5"
+    [class.rounded-lg]="stage === 'inChair'"
+    [class.bg-primary/10]="stage === 'inChair'"
+    [class.px-3]="stage === 'inChair'"
+  >
+    @if (stage === 'waiting') {
+      <span
+        class="num flex h-6 w-6 flex-none items-center justify-center rounded-full bg-warn/15 text-meta font-semibold text-warn"
+        >{{ index + 1 }}</span
+      >
+    }
+    <span class="num w-[44px] flex-none text-caption text-surface-300">{{
+      a.start | appDate: 'time'
+    }}</span>
+    <button
+      type="button"
+      class="min-w-0 flex-1 text-start hover:underline"
+      (click)="openPatient(a)"
+    >
+      @if (patients.get(a.patientId); as p) {
+        <app-patient-name [patient]="p" [compact]="true" />
+        <app-medical-alerts [alerts]="p.alerts" class="mt-0.5" />
+      }
+      <span class="block truncate text-meta text-surface-400">{{ a.reason }}</span>
+      @if (lastMessage(a); as m) {
+        <span class="block truncate text-meta text-primary" dir="auto"
+          ><i class="pi pi-comment me-1 text-fine"></i>{{ m }}</span
+        >
+      }
+    </button>
+    <p-button
+      [icon]="messageCount(a) ? 'pi pi-comments' : 'pi pi-comment'"
+      [badge]="messageCount(a) ? '' + messageCount(a) : undefined"
+      badgeSeverity="info"
+      size="small"
+      [text]="true"
+      severity="secondary"
+      [ariaLabel]="'messages.open' | transloco"
+      (onClick)="openThread(a)"
+    />
+    @if (canRequest()) {
+      <p-button
+        icon="pi pi-send"
+        size="small"
+        [text]="true"
+        severity="secondary"
+        [ariaLabel]="'tasks.newRequest' | transloco"
+        (onClick)="openRequest(a)"
+      />
+    }
+    @if (canAct()) {
+      @switch (stage) {
+        @case ('expected') {
+          <p-button
+            [label]="'waitingRoom.markArrived' | transloco"
+            icon="pi pi-sign-in"
+            size="small"
+            [text]="true"
+            (onClick)="markArrived(a)"
+          />
+          <p-button
+            icon="pi pi-user-minus"
+            size="small"
+            [text]="true"
+            severity="secondary"
+            [ariaLabel]="'apptStatus.no-show' | transloco"
+            (onClick)="noShow(a)"
+          />
+        }
+        @case ('waiting') {
+          <p-button
+            [label]="'waitingRoom.takeCharge' | transloco"
+            icon="pi pi-arrow-right"
+            size="small"
+            [outlined]="true"
+            (onClick)="takeCharge(a)"
+          />
+        }
+        @case ('inChair') {
+          <p-button
+            [label]="'waitingRoom.finish' | transloco"
+            icon="pi pi-check"
+            size="small"
+            (onClick)="finish(a)"
+          />
+        }
+      }
+    }
+  </div>
+</ng-template>
+
+@if (queues().length === 0) {
+  <app-empty-state icon="users" [title]="'waitingRoom.empty' | transloco" />
+} @else {
+  <div
+    class="grid gap-4"
+    [class.lg:grid-cols-2]="queues().length > 1"
+    [class.2xl:grid-cols-3]="queues().length > 2"
+  >
+    @for (q of queues(); track q.doctor.id) {
+      <section class="rounded-xl border border-surface-700 bg-surface-900">
+        <header class="flex items-center gap-2 border-b border-surface-700 px-4 py-2.5">
+          <span class="h-2.5 w-2.5 rounded-full" [style.background]="q.doctor.color"></span>
+          <span class="text-caption font-semibold text-surface-100">{{ q.doctor.nameLatin }}</span>
+          <span
+            class="ms-auto num rounded-md bg-surface-800 px-2 py-0.5 text-meta text-surface-300"
+            >{{ q.waiting.length }}</span
+          >
+        </header>
+
+        @if (q.inChair.length) {
+          <div class="border-b border-surface-700 px-4 py-2">
+            <p class="mb-1 text-meta uppercase tracking-[0.6px] text-primary">
+              {{ 'waitingRoom.inChair' | transloco }}
+            </p>
+            @for (a of q.inChair; track a.id) {
+              <ng-container
+                *ngTemplateOutlet="row; context: { a: a, index: $index, stage: 'inChair' }"
+              />
+            }
+          </div>
+        }
+
+        <div class="border-b border-surface-700 px-4 py-2">
+          <p class="mb-1 text-meta uppercase tracking-[0.6px] text-warn">
+            {{ 'waitingRoom.waiting' | transloco }}
+          </p>
+          @for (a of q.waiting; track a.id) {
+            <ng-container
+              *ngTemplateOutlet="row; context: { a: a, index: $index, stage: 'waiting' }"
+            />
+          } @empty {
+            <p class="py-1.5 text-caption text-surface-400">
+              {{ 'waitingRoom.nobodyWaiting' | transloco }}
+            </p>
+          }
+        </div>
+
+        <div class="px-4 py-2">
+          <p class="mb-1 text-meta uppercase tracking-[0.6px] text-surface-400">
+            {{ 'waitingRoom.expected' | transloco }}
+          </p>
+          @for (a of q.expected; track a.id) {
+            <ng-container
+              *ngTemplateOutlet="row; context: { a: a, index: $index, stage: 'expected' }"
+            />
+          } @empty {
+            <p class="py-1.5 text-caption text-surface-400">
+              {{ 'waitingRoom.nobodyExpected' | transloco }}
+            </p>
+          }
+        </div>
+      </section>
+    }
+  </div>
+}
+
+<app-message-thread-dialog
+  [(visible)]="threadOpen"
+  [appointment]="threadFor()"
+  [patient]="patients.get(threadFor()?.patientId)"
+/>
+@if (requestFor(); as a) {
+  @if (patients.get(a.patientId); as p) {
+    <app-task-dialog [(visible)]="requestOpen" [patient]="p" [appointmentId]="a.id" />
+  }
+}

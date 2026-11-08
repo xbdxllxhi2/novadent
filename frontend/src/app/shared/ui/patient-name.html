@@ -1,0 +1,13 @@
+@if (arabicFirst()) {
+  <span class="truncate font-medium text-surface-100" dir="rtl" lang="ar">{{
+    arabic() || latin()
+  }}</span>
+  @if (!compact() && arabic() && latin()) {
+    <span class="truncate text-caption text-surface-400" dir="ltr">{{ latin() }}</span>
+  }
+} @else {
+  <span class="truncate font-medium text-surface-100" dir="ltr">{{ latin() || arabic() }}</span>
+  @if (!compact() && latin() && arabic()) {
+    <span class="truncate text-caption text-surface-400" dir="rtl" lang="ar">{{ arabic() }}</span>
+  }
+}

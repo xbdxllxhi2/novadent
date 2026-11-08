@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npx -y -p @angular/cli@21 ng new frontend --standalone --style=css --routing --ssr=false --zoneless --test-runner=vitest --skip-git --package-manager=npm --ai-config=none --skip-install 2>&1)"
+    ]
+  }
+}

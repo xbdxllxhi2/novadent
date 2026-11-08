@@ -1,0 +1,91 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [header]="
+    (isCertificate() ? 'documents.newCertificate' : 'documents.newPrescription') | transloco
+  "
+  [style]="{ width: 'min(96vw, 680px)' }"
+>
+  <div class="flex flex-col gap-4">
+    @if (isCertificate()) {
+      <div class="grid gap-3 sm:grid-cols-3">
+        <div class="flex flex-col gap-1 text-caption text-surface-300 sm:col-span-3">
+          {{ 'documents.certType' | transloco }}
+          <p-selectbutton
+            [ngModel]="certificateType()"
+            (ngModelChange)="regenerate($event)"
+            [options]="certificateTypes"
+            [allowEmpty]="false"
+            size="small"
+          >
+            <ng-template #item let-t>{{
+              (t === 'sick-leave' ? 'documents.sickLeave' : 'documents.attendance') | transloco
+            }}</ng-template>
+          </p-selectbutton>
+        </div>
+        @if (certificateType() === 'sick-leave') {
+          <label class="flex flex-col gap-1 text-caption text-surface-300">
+            {{ 'documents.days' | transloco }}
+            <p-inputnumber
+              [ngModel]="days()"
+              (ngModelChange)="regenerate(certificateType(), $event ?? 1)"
+              [min]="1"
+              [max]="90"
+              [showButtons]="true"
+              styleClass="w-full"
+            />
+          </label>
+        }
+        <label class="flex flex-col gap-1 text-caption text-surface-300">
+          {{ 'documents.fromDate' | transloco }}
+          <p-datepicker
+            [ngModel]="fromDate()"
+            (ngModelChange)="regenerate(certificateType(), days(), $event)"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            appendTo="body"
+            styleClass="w-full"
+          />
+        </label>
+      </div>
+    }
+
+    <label class="flex flex-col gap-1 text-caption text-surface-300">
+      {{ 'documents.body' | transloco }}
+      <textarea
+        pTextarea
+        [ngModel]="body()"
+        (ngModelChange)="body.set($event)"
+        rows="10"
+        class="w-full text-ui leading-relaxed"
+        [placeholder]="
+          (isCertificate() ? 'documents.bodyHintCertificate' : 'documents.bodyHintPrescription')
+            | transloco
+        "
+        [invalid]="submitted() && !valid()"
+        dir="auto"
+      ></textarea>
+      <span class="text-meta text-surface-400">{{ 'documents.freeTextHint' | transloco }}</span>
+    </label>
+  </div>
+
+  <ng-template #footer>
+    <p-button
+      type="button"
+      [label]="'common.cancel' | transloco"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="visible.set(false)"
+    />
+    <p-button
+      type="button"
+      [label]="'common.save' | transloco"
+      icon="pi pi-check"
+      [loading]="store.saving()"
+      (onClick)="submit()"
+    />
+  </ng-template>
+</p-dialog>
