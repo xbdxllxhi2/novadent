@@ -33,6 +33,11 @@ jobs:
       - name: Install
         run: npm ci
 
+      # environment.development.ts is gitignored (local-only). The `test` target builds the
+      # development configuration, whose fileReplacements entry points at it, so CI needs a copy.
+      - name: Create the development environment file
+        run: cp src/environments/environment.development.ts.example src/environments/environment.development.ts
+
       - name: Format check
         run: npm run format:check
 
